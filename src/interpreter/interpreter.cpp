@@ -1,1 +1,1 @@
-#include "/interpreter/interpreter.h"
+#include "interpreter/interpreter.h"
