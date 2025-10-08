@@ -13,3 +13,9 @@ add_executable(ngl src/ngl.cpp)
 
 enable_testing()
 add_subdirectory(tests)
+
+add_custom_target(tests
+    COMMAND ctest --verbose
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMENT "Running tests with verbose output"
+)

@@ -1,5 +1,6 @@
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS} ../include)
-add_executable(test_interpreter interpreter/test_interpreter.cpp)
-target_link_libraries(test_interpreter ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
-add_test(NAME InterpreterTest COMMAND test_interpreter)
+
+add_executable(stackTest stack/stackTest.cpp)
+target_link_libraries(stackTest stack ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
+add_test(NAME stackTest COMMAND stackTest)

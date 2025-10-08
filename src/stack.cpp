@@ -24,6 +24,7 @@ std::optional<uint8_t*> Stack::push(const ElementInfo& element)
 	if(cleanStackBeforeUse_)
 		memset(data_ + top_, 0, element.size());
 	top_ += element.size();
+	++levels_.back();
 	return data_ + top_ - element.size();
 }
 void Stack::pop()
@@ -32,6 +33,9 @@ void Stack::pop()
 		return;
 	top_ -= elements_.back().size();
 	elements_.pop_back();
+	--levels_.back();
+	if(levels_.back() == 0 && levels_.size() > 1)
+		levels_.pop_back();
 }
 
 void Stack::pop(size_t count)
@@ -101,7 +105,7 @@ int Stack::newLevel()
 	levels_.push_back(0);
 	return 0;
 }
-int Stack::deleteLevel()
+int Stack::popLevel()
 {
 	if(levels_.empty())
 		return -1;
@@ -109,7 +113,18 @@ int Stack::deleteLevel()
 	levels_.pop_back();
 	if(count > elements_.size())
 		return -1;
-	for(size_t i = 0; i < count; ++i)
-		pop();
+	pop(count);
+	return 0;
+}
+
+int Stack::popToLevel(size_t level)
+{
+	if(level >= levels_.size())
+		return -1;
+	while(levels_.size() > level + 1)
+	{
+		if(popLevel() != 0)
+			return -1;
+	}
 	return 0;
 }

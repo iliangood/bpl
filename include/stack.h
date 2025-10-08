@@ -35,8 +35,9 @@ class Stack
 	size_t capacity_;
 	std::vector<size_t> levels_;
 	bool cleanStackBeforeUse_;
-	Stack(uint8_t* data, size_t capacity, bool cleanStackBeforeUse) : data_(data), top_(0), capacity_(capacity), cleanStackBeforeUse_(cleanStackBeforeUse) {};
-	public:
+	Stack(uint8_t* data, size_t capacity, bool cleanStackBeforeUse = false) : 
+	data_(data), top_(0), capacity_(capacity), levels_({0}), cleanStackBeforeUse_(cleanStackBeforeUse) {};
+public:
 	static std::optional<Stack> make(size_t capacity, bool cleanStackBeforeUse = false);
 	~Stack();
 	
@@ -45,8 +46,8 @@ class Stack
 	size_t size() const { return top_; }
 	bool empty() const { return top_ == 0; }
 	
-	Element info(size_t index) const { return elements_.at(index); }
-	Element infoFromEnd(size_t index) const { return elements_.at(top_ - 1 - index); }
+	Element element(size_t index) const { return elements_.at(index); }
+	Element elementFromEnd(size_t index) const { return elements_.at(elements_.size() - 1 - index); }
 	
 	std::optional<uint8_t*> push(const ElementInfo& element);
 	void pop();
@@ -55,8 +56,11 @@ class Stack
 	void setCleanStackBeforeUse(bool clean) { cleanStackBeforeUse_ = clean; }
 	bool cleanStackBeforeUse() const { return cleanStackBeforeUse_; }
 	
-	void popToLevel(size_t level);
 	size_t currentLevel() const { return levels_.size(); }
+	int newLevel();
+	int popLevel();
+	int deleteLevel() { return popLevel(); }
+	int popToLevel(size_t level);
 
 	uint8_t* at(size_t index);
 	const uint8_t* at(size_t index) const;
@@ -70,10 +74,6 @@ class Stack
 
 	int resize(size_t new_capacity);
 	void clear();
-
-	int newLevel();
-	int deleteLevel();
-
 
 };
 
