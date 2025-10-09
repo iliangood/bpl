@@ -24,6 +24,11 @@ class Function;
 
 typedef std::variant<const BaseType*, const Type*, const Pointer*, const Function*> TypeVariant;
 
+bool isBaseType(const TypeVariant& var);
+bool isType(const TypeVariant& var);
+bool isPointer(const TypeVariant& var);
+bool isFunction(const TypeVariant& var);
+
 class Function
 {
 	std::string name_;

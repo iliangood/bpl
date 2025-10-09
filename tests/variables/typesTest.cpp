@@ -2,14 +2,16 @@
 #include "variables/type.h"
 
 // Test BaseType class
-TEST(BaseTypeTest, ConstructorAndGetters) {
+TEST(BaseTypeTest, ConstructorAndGetters) 
+{
     BaseType bt("int", 4);
     EXPECT_EQ(bt.name(), "int");
     EXPECT_EQ(bt.size(), 4);
 }
 
 // Test Pointer class
-TEST(PointerTest, ConstructorAndGetters) {
+TEST(PointerTest, ConstructorAndGetters) 
+{
     BaseType bt("int", 4);
     TypeVariant tv = &bt;  // TypeVariant holds const BaseType*
     Pointer ptr(&tv);
@@ -23,7 +25,8 @@ TEST(PointerTest, ConstructorAndGetters) {
 }
 
 // Test Type class with BaseTypes
-TEST(TypeTest, ConstructorWithBaseTypes) {
+TEST(TypeTest, ConstructorWithBaseTypes) 
+{
     BaseType intType("int", 4);
     BaseType floatType("float", 4);
     std::vector<TypeVariant> types = {&intType, &floatType};
@@ -40,7 +43,8 @@ TEST(TypeTest, ConstructorWithBaseTypes) {
 }
 
 // Test Type class with nested Types
-TEST(TypeTest, ConstructorWithNestedTypes) {
+TEST(TypeTest, ConstructorWithNestedTypes) 
+{
     BaseType intType("int", 4);
     std::vector<TypeVariant> innerTypes = {&intType};
     Type inner("Inner", innerTypes);
@@ -57,7 +61,8 @@ TEST(TypeTest, ConstructorWithNestedTypes) {
 }
 
 // Test Type class with Pointers
-TEST(TypeTest, ConstructorWithPointers) {
+TEST(TypeTest, ConstructorWithPointers) 
+{
     BaseType intType("int", 4);
     TypeVariant tv = &intType;
     Pointer ptr(&tv);
@@ -74,7 +79,8 @@ TEST(TypeTest, ConstructorWithPointers) {
 }
 
 // Test Type class with mixed variants
-TEST(TypeTest, ConstructorWithMixed) {
+TEST(TypeTest, ConstructorWithMixed) 
+{
     BaseType intType("int", 4);
     BaseType floatType("float", 4);
 
@@ -92,7 +98,8 @@ TEST(TypeTest, ConstructorWithMixed) {
 }
 
 // Test Array class
-TEST(ArrayTest, ConstructorAndGetters) {
+TEST(ArrayTest, ConstructorAndGetters) 
+{
     BaseType intType("int", 4);
     std::vector<TypeVariant> types = {&intType};
     Type arrayElem("Elem", types);
@@ -105,7 +112,8 @@ TEST(ArrayTest, ConstructorAndGetters) {
 }
 
 // Test Array with composite Type
-TEST(ArrayTest, SizeWithComposite) {
+TEST(ArrayTest, SizeWithComposite) 
+{
     BaseType intType("int", 4);
     BaseType floatType("float", 4);
     std::vector<TypeVariant> types = {&intType, &floatType};

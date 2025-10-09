@@ -2,7 +2,8 @@
 #include "variables/stack.h"
 
 // Тестовый фикстур для упрощения работы с классом Stack
-class StackTest : public ::testing::Test {
+class StackTest : public ::testing::Test 
+{
 protected:
     void SetUp() override {
         // Создаем стек с емкостью 100 байт
@@ -14,14 +15,16 @@ protected:
 };
 
 // Тест на создание стека
-TEST_F(StackTest, CreateStack) {
+TEST_F(StackTest, CreateStack) 
+{
     EXPECT_EQ(stack_->capacity(), 100u) << "Stack capacity should be 100";
     EXPECT_EQ(stack_->size(), 0u) << "Stack should be empty initially";
     EXPECT_TRUE(stack_->empty()) << "Stack should be empty";
 }
 
 // Тест на добавление элемента
-TEST_F(StackTest, PushElement) {
+TEST_F(StackTest, PushElement) 
+{
     ElementInfo info("test_element", 10);
     auto ptr = stack_->push(info);
     ASSERT_TRUE(ptr.has_value()) << "Push should succeed";
@@ -32,7 +35,8 @@ TEST_F(StackTest, PushElement) {
 }
 
 // Тест на удаление элемента
-TEST_F(StackTest, PopElement) {
+TEST_F(StackTest, PopElement)
+{
     ElementInfo info("test_element", 10);
     stack_->push(info);
     stack_->pop();
@@ -41,7 +45,8 @@ TEST_F(StackTest, PopElement) {
 }
 
 // Тест на доступ к элементам
-TEST_F(StackTest, AccessElements) {
+TEST_F(StackTest, AccessElements) 
+{
     ElementInfo info1("first", 5);
     ElementInfo info2("second", 10);
     stack_->push(info1);
@@ -53,7 +58,8 @@ TEST_F(StackTest, AccessElements) {
 }
 
 // Тест на изменение размера
-TEST_F(StackTest, ResizeStack) {
+TEST_F(StackTest, ResizeStack) 
+{
     ElementInfo info("large_element", 150);
     auto ptr = stack_->push(info);
     ASSERT_TRUE(ptr.has_value()) << "Push should succeed after resize";
@@ -62,7 +68,8 @@ TEST_F(StackTest, ResizeStack) {
 }
 
 // Тест на очистку стека
-TEST_F(StackTest, ClearStack) {
+TEST_F(StackTest, ClearStack) 
+{
     ElementInfo info("test_element", 10);
     stack_->push(info);
     stack_->clear();
@@ -71,7 +78,8 @@ TEST_F(StackTest, ClearStack) {
 }
 
 // Тест на уровни стека
-TEST_F(StackTest, StackLevels) {
+TEST_F(StackTest, StackLevels) 
+{
     ElementInfo info("test_element", 10);
     stack_->push(info);
     stack_->newLevel();

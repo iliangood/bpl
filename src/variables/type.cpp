@@ -59,3 +59,25 @@ std::string Function::name() const { return name_; }
 Type* Function::returnType() const { return returnType_; }
 
 const std::vector<TypeVariant>& Function::argumentsTypes() const { return argumentsTypes_; }
+
+
+
+bool isBaseType(const TypeVariant& var) 
+{
+	return std::holds_alternative<const BaseType*>(var);
+}
+
+bool isType(const TypeVariant& var) 
+{
+	return std::holds_alternative<const Type*>(var);
+}
+
+bool isPointer(const TypeVariant& var) 
+{
+	return std::holds_alternative<const Pointer*>(var);
+}
+
+bool isFunction(const TypeVariant& var) 
+{
+	return std::holds_alternative<const Function*>(var);
+}

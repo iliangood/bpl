@@ -27,6 +27,7 @@ std::optional<uint8_t*> Stack::push(const ElementInfo& element)
 	++levels_.back();
 	return data_ + top_ - element.size();
 }
+
 void Stack::pop()
 {
 	if (elements_.back().size() > top_)
@@ -53,6 +54,7 @@ uint8_t* Stack::at(size_t index)
 		offset += elements_[i].size();
 	return data_ + offset;
 }
+
 const uint8_t* Stack::at(size_t index) const
 {
 	if(index >= elements_.size())
@@ -72,6 +74,7 @@ uint8_t* Stack::atFromEnd(size_t index)
 		offset -= elements_[elements_.size() - 1 - i].size();
 	return data_ + offset;
 }
+
 const uint8_t* Stack::atFromEnd(size_t index) const
 {
 	if(index >= elements_.size())
@@ -93,6 +96,7 @@ int Stack::resize(size_t new_capacity)
 	capacity_ = new_capacity;
 	return 0;
 }
+
 void Stack::clear()
 {
 	elements_.clear();
@@ -105,6 +109,7 @@ int Stack::newLevel()
 	levels_.push_back(0);
 	return 0;
 }
+
 int Stack::popLevel()
 {
 	if(levels_.empty())
