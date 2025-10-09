@@ -18,6 +18,7 @@ public:
 };
 
 class Pointer;
+class Type;
 
 typedef std::variant<const BaseType*, const Type*, const Pointer*> TypeVariant;
 
