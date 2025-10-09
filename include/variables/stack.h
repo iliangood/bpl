@@ -65,7 +65,6 @@ public:
 	uint8_t* at(size_t index);
 	const uint8_t* at(size_t index) const;
 
-
 	uint8_t* operator[](size_t index) { return at(index); }
 	const uint8_t* operator[](size_t index) const { return at(index);}
 

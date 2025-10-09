@@ -17,10 +17,27 @@ public:
 	std::string name() const;
 };
 
+
 class Pointer;
 class Type;
+class Function;
 
-typedef std::variant<const BaseType*, const Type*, const Pointer*> TypeVariant;
+typedef std::variant<const BaseType*, const Type*, const Pointer*, const Function*> TypeVariant;
+
+class Function
+{
+	std::string name_;
+	Type* returnType_;
+	std::vector<TypeVariant> argumentsTypes_;
+	size_t startsAddress_;
+public:
+	Function(std::string name, Type* returnType, const std::vector<TypeVariant>& argumentsTypes);
+	size_t address() const { return startsAddress_; }
+	std::string name() const;
+	Type* returnType() const;
+	const std::vector<TypeVariant>& argumentsTypes() const;
+};
+
 
 class Pointer
 {
