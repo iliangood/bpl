@@ -9,6 +9,8 @@ add_library(stack src/variables/stack.cpp include/variables/stack.h)
 
 add_library(interpreter src/interpreter/interpreter.cpp include/interpreter/interpreter.h)
 
+add_library(variables src/variables/type.cpp include/variables/type.h)
+
 add_executable(ngl src/ngl.cpp)
 
 enable_testing()
