@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "stack.h"
+#include "variables/stack.h"
 
 // Тестовый фикстур для упрощения работы с классом Stack
 class StackTest : public ::testing::Test {

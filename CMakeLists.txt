@@ -5,7 +5,7 @@ add_compile_options(-std=c++17 -Wall -Wextra -Wpedantic)
 
 include_directories(include)
 
-add_library(stack src/stack.cpp include/stack.h)
+add_library(stack src/variables/stack.cpp include/variables/stack.h)
 
 add_library(interpreter src/interpreter/interpreter.cpp include/interpreter/interpreter.h)
 

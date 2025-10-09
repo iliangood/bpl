@@ -1,4 +1,4 @@
-#include "stack.h"
+#include "variables/stack.h"
 
 std::optional<Stack> Stack::make(size_t capacity, bool cleanStackBeforeUse)
 {
