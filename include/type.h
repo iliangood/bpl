@@ -21,6 +21,18 @@ class Pointer;
 
 typedef std::variant<const BaseType*, const Type*, const Pointer*> TypeVariant;
 
+class Pointer
+{
+	TypeVariant* pointsTo_;
+	void* ptr_;
+public:
+	Pointer(TypeVariant* pointsTo) : pointsTo_(pointsTo), ptr_(nullptr) {}
+	TypeVariant* pointsTo() const { return pointsTo_; }
+	size_t size() const { return sizeof(void*); }
+	void* ptr() const { return ptr_; }
+	void setPtr(void* ptr) { ptr_ = ptr; }
+};
+
 class Type
 {
 	std::string name_;
