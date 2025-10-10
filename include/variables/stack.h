@@ -8,13 +8,16 @@
 #include <inttypes.h>
 #include <cstring>
 
+#include "variables/type.h"
+
 class ElementInfo
 {
 	std::string name_;
-	size_t size_;
+	TypeVariant type_;
 public:
-	ElementInfo(std::string name, size_t size) : name_(name), size_(size) {}
-	size_t size() const { return size_; }
+	ElementInfo(std::string name, TypeVariant type) : name_(name), type_(type) {}
+	size_t size() const { return sizeOfTypeVariant(type_); }
+	TypeVariant type() const { return type_; }
 	std::string name() const { return name_; }
 };
 
