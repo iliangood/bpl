@@ -6,6 +6,7 @@
 #include <optional>
 #include <variant>
 #include <cstddef>
+#include <memory>
 
 class BaseType
 {
@@ -13,57 +14,83 @@ class BaseType
 	size_t size_;
 public:
 	BaseType(std::string name, size_t size);
+	BaseType(BaseType&&) = default;
+	BaseType(const BaseType&) = default;
+	BaseType& operator=(BaseType&&) = default;
+	BaseType& operator=(const BaseType&) = default;
 	size_t size() const;
 	std::string name() const;
 };
 
+class TypeVariant;
 
-class Pointer;
-class Type;
-class Function;
-
-typedef std::variant<const BaseType*, const Type*, const Pointer*, const Function*> TypeVariant;
-
-bool isBaseType(const TypeVariant& var);
-bool isType(const TypeVariant& var);
-bool isPointer(const TypeVariant& var);
-bool isFunction(const TypeVariant& var);
 
 class Function
 {
-	std::string name_;
-	Type* returnType_;
+	std::shared_ptr<TypeVariant> returnType_;
 	std::vector<TypeVariant> argumentsTypes_;
-	size_t startsAddress_;
 public:
-	Function(std::string name, Type* returnType, const std::vector<TypeVariant>& argumentsTypes);
-	size_t address() const { return startsAddress_; }
-	std::string name() const;
-	Type* returnType() const;
+	Function(TypeVariant returnType, const std::vector<TypeVariant>& argumentsTypes);
+
+	Function(Function&&);
+	Function(const Function&);
+	Function& operator=(Function&&);
+	Function& operator=(const Function&);
+
+	bool operator==(const Function& other) const;
+	bool operator!=(const Function& other) const { return !(*this == other); }
+
+	size_t size() const { return sizeof(void*); }
+	TypeVariant returnType() const;
 	const std::vector<TypeVariant>& argumentsTypes() const;
 };
 
 
 class Pointer
 {
-	TypeVariant* pointerType_;
-	void* ptr_;
+	std::shared_ptr<TypeVariant> pointerType_;
 public:
-	Pointer(TypeVariant* pointerType);
-	TypeVariant* pointsTo() const;
-	size_t size() const;
-	void* ptr() const;
-	void setPtr(void* ptr);
+	Pointer(TypeVariant pointerType);
+
+	Pointer(const Pointer& other);
+	Pointer(Pointer&& other);
+	Pointer& operator=(const Pointer& other);
+	Pointer& operator=(Pointer&& other);
+
+	bool operator==(const Pointer& other) const;
+	bool operator!=(const Pointer& other) const { return !(*this == other); }
+
+	TypeVariant pointerType() const;
+	size_t size() const { return sizeof(void*); }
 };
 
-class Type
+class Array
+{
+	std::shared_ptr<TypeVariant> elementType_;
+	size_t count_;
+public:
+	Array(TypeVariant elementType, size_t count);
+	Array(Array&&);
+	Array(const Array&);
+	Array& operator=(Array&&);
+	Array& operator=(const Array&);
+
+	TypeVariant elementType() const;
+	size_t count() const;
+	size_t size() const;
+};
+
+class Struct
 {
 	std::string name_;
 	std::vector<TypeVariant> types_;
 	size_t totalSize_;
-
 public:
-	Type(std::string name, const std::vector<TypeVariant>& types);
+	Struct(std::string name, const std::vector<TypeVariant>& types);
+	Struct(Struct&&) = default;
+	Struct(const Struct&) = default;
+	Struct& operator=(Struct&&) = default;
+	Struct& operator=(const Struct&) = default;
 
 	std::string name() const;
 	size_t size() const;
@@ -71,15 +98,35 @@ public:
 	const std::vector<TypeVariant>& baseTypes() const;
 };
 
-
-class Array
+class TypeVariant : public std::variant<const BaseType*, const Struct*, const Function*, Pointer, Array>
 {
-	Type* elementType_;
-	size_t count_;
 public:
-	Array(Type* elementType, size_t count);
-	Type* elementType() const;
-	size_t count() const;
-	size_t size() const;
+    // Перенаправляем конструкторы variant
+    using std::variant<const BaseType*, const Struct*, const Function*, Pointer, Array>::variant;
+
+    // Перенаправляем другие ключевые методы (holds_alternative, get и т.д.)
+    using std::variant<const BaseType*, const Struct*, const Function*, Pointer, Array>::index;
+    using std::variant<const BaseType*, const Struct*, const Function*, Pointer, Array>::operator=;
+    // Добавьте другие, если нужно (visit, emplace и т.д.)
 };
+
+
+bool isBaseType(const TypeVariant& var);
+bool isStruct(const TypeVariant& var);
+bool isPointer(const TypeVariant& var);
+bool isFunction(const TypeVariant& var);
+bool isArray(const TypeVariant& var);
+size_t sizeOfTypeVariant(const TypeVariant& var);
+
+bool isBaseType(std::shared_ptr<TypeVariant> var);
+bool isStruct(std::shared_ptr<TypeVariant> var);
+bool isPointer(std::shared_ptr<TypeVariant> var);
+bool isFunction(std::shared_ptr<TypeVariant> var);
+bool isArray(std::shared_ptr<TypeVariant> var);
+size_t sizeOfTypeVariant(std::shared_ptr<TypeVariant> var);
+
+bool operator==(const TypeVariant& a, const TypeVariant& b);
+bool operator!=(const TypeVariant& a, const TypeVariant& b);
+
+
 #endif
