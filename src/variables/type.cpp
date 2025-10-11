@@ -190,12 +190,12 @@ bool Function::operator==(const Function& other) const
 
 bool isBaseType(const TypeVariant& var) 
 {
-	return std::holds_alternative<const BaseType*>(var);
+	return std::holds_alternative<std::shared_ptr<const BaseType>>(var);
 }
 
 bool isStruct(const TypeVariant& var) 
 {
-	return std::holds_alternative<const Struct*>(var);
+	return std::holds_alternative<std::shared_ptr<const Struct>>(var);
 }
 
 bool isPointer(const TypeVariant& var) 
@@ -216,9 +216,9 @@ bool isArray(const TypeVariant& var)
 size_t sizeOfTypeVariant(const TypeVariant& var)
 {
 	if (isBaseType(var))
-		return std::get<const BaseType*>(var)->size();
+		return std::get<std::shared_ptr<const BaseType>>(var)->size();
 	else if (isStruct(var))
-		return std::get<const Struct*>(var)->size();
+		return std::get<std::shared_ptr<const Struct>>(var)->size();
 	else if (isFunction(var))
 		return std::get<Function>(var).size();
 	else if (isPointer(var))
@@ -228,32 +228,32 @@ size_t sizeOfTypeVariant(const TypeVariant& var)
 	return 0;
 }
 
-bool isBaseType(TypeVariant* var) 
+bool isBaseType(const std::unique_ptr<TypeVariant>& var) 
 {
 	return isBaseType(*var);
 }
 
-bool isStruct(TypeVariant* var) 
+bool isStruct(const std::unique_ptr<TypeVariant>& var) 
 {
 	return isStruct(*var);
 }
 
-bool isPointer(TypeVariant* var) 
+bool isPointer(const std::unique_ptr<TypeVariant>& var) 
 {
 	return isPointer(*var);
 }
 
-bool isFunction(TypeVariant* var) 
+bool isFunction(const std::unique_ptr<TypeVariant>& var) 
 {
 	return isFunction(*var);
 }
 
-bool isArray(TypeVariant* var) 
+bool isArray(const std::unique_ptr<TypeVariant>& var) 
 {
 	return isArray(*var);
 }
 
-size_t sizeOfTypeVariant(TypeVariant* var)
+size_t sizeOfTypeVariant(const std::unique_ptr<TypeVariant>& var)
 {
 	return sizeOfTypeVariant(*var);
 }
@@ -263,9 +263,9 @@ bool operator==(const TypeVariant& a, const TypeVariant& b)
 	if (a.index() != b.index())
 		return false;
 	if (isBaseType(a))
-		return std::get<const BaseType*>(a) == std::get<const BaseType*>(b);
+		return std::get<std::shared_ptr<const BaseType>>(a) == std::get<std::shared_ptr<const BaseType>>(b);
 	else if (isStruct(a))
-		return std::get<const Struct*>(a) == std::get<const Struct*>(b);
+		return std::get<std::shared_ptr<const Struct>>(a) == std::get<std::shared_ptr<const Struct>>(b);
 	else if (isFunction(a))
 		return std::get<Function>(a) == std::get<Function>(b);
 	else if (isPointer(a))

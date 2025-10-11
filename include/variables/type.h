@@ -112,15 +112,15 @@ public:
 	const std::vector<TypeVariant>& baseTypes() const;
 };
 
-class TypeVariant : public std::variant<const BaseType*, const Struct*, Function, Pointer, Array>
+class TypeVariant : public std::variant<std::shared_ptr<const BaseType>, std::shared_ptr<const Struct>, Function, Pointer, Array>
 {
 public:
     // Перенаправляем конструкторы variant
-    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::variant;
+    using std::variant<std::shared_ptr<const BaseType>, std::shared_ptr<const Struct>, Function, Pointer, Array>::variant;
 
     // Перенаправляем другие ключевые методы (holds_alternative, get и т.д.)
-    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::index;
-    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::operator=;
+    using std::variant<std::shared_ptr<const BaseType>, std::shared_ptr<const Struct>, Function, Pointer, Array>::index;
+    using std::variant<std::shared_ptr<const BaseType>, std::shared_ptr<const Struct>, Function, Pointer, Array>::operator=;
     // Добавьте другие, если нужно (visit, emplace и т.д.)
 };
 
@@ -133,12 +133,12 @@ bool isFunction(const TypeVariant& var);
 bool isArray(const TypeVariant& var);
 size_t sizeOfTypeVariant(const TypeVariant& var);
 
-bool isBaseType(TypeVariant* var);
-bool isStruct(TypeVariant* var);
-bool isPointer(TypeVariant* var);
-bool isFunction(TypeVariant* var);
-bool isArray(TypeVariant* var);
-size_t sizeOfTypeVariant(TypeVariant* var);
+bool isBaseType(const std::unique_ptr<TypeVariant>& var);
+bool isStruct(const std::unique_ptr<TypeVariant>& var);
+bool isPointer(const std::unique_ptr<TypeVariant>& var);
+bool isFunction(const std::unique_ptr<TypeVariant>& var);
+bool isArray(const std::unique_ptr<TypeVariant>& var);
+size_t sizeOfTypeVariant(const std::unique_ptr<TypeVariant>& var);
 
 bool operator==(const TypeVariant& a, const TypeVariant& b);
 bool operator!=(const TypeVariant& a, const TypeVariant& b);
