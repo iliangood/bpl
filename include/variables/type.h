@@ -10,6 +10,8 @@
 #include <memory>
 #include <stdexcept>
 
+#include "utils.h"
+
 class BaseType
 {
 	std::string name_;
@@ -20,6 +22,9 @@ public:
 	BaseType(const BaseType&) = default;
 	BaseType& operator=(BaseType&&) = default;
 	BaseType& operator=(const BaseType&) = default;
+
+	bool isValid() const;
+
 	size_t size() const;
 	std::string name() const;
 };
@@ -32,8 +37,9 @@ class Function
 	std::unique_ptr<TypeVariant> returnType_;
 	std::vector<TypeVariant> argumentsTypes_;
 public:
-	
 	Function(TypeVariant returnType, const std::vector<TypeVariant>& argumentsTypes);
+	
+	bool isValid() const;
 
 	Function(Function&&);
 	Function(const Function&);
@@ -54,6 +60,8 @@ class Pointer
 	std::unique_ptr<TypeVariant> pointerType_;
 public:
 	Pointer(TypeVariant pointerType);
+
+	bool isValid() const;
 
 	Pointer(const Pointer& other);
 	Pointer(Pointer&& other);
@@ -78,6 +86,8 @@ public:
 	Array& operator=(Array&&);
 	Array& operator=(const Array&);
 
+	bool isValid() const;
+
 	bool operator==(const Array& other) const;
 	bool operator!=(const Array& other) const { return !(*this == other); }
 	bool isTypeCompatible(const Array& other) const;
@@ -101,6 +111,8 @@ public:
 	Struct& operator=(Struct&&) = default;
 	Struct& operator=(const Struct&) = default;
 
+	bool isValid() const;
+
 	bool operator==(const Struct& other) const;
 	bool operator!=(const Struct& other) const { return !(*this == other); }
 
@@ -113,16 +125,14 @@ public:
 class TypeVariant : public std::variant<const BaseType*, const Struct*, Function, Pointer, Array>
 {
 public:
-    // Перенаправляем конструкторы variant
     using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::variant;
 
-    // Перенаправляем другие ключевые методы (holds_alternative, get и т.д.)
     using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::index;
     using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::operator=;
-    // Добавьте другие, если нужно (visit, emplace и т.д.)
 };
 
-
+bool isValid(const TypeVariant& var);
+bool isValid(const std::unique_ptr<TypeVariant>& var);
 
 bool isBaseType(const TypeVariant& var);
 bool isStruct(const TypeVariant& var);
