@@ -29,21 +29,19 @@ bool Struct::operator==(const Struct& other) const
 
 
 
-Pointer::Pointer(TypeVariant pointerType) : pointerType_((TypeVariant*)malloc(sizeof(TypeVariant))) 
+Pointer::Pointer(TypeVariant pointerType) : pointerType_(new TypeVariant)
 {
 	*pointerType_ = pointerType;
 }
 
 Pointer::~Pointer()
 {
-	if (pointerType_)
-		free(pointerType_);
 	pointerType_ = nullptr;
 }
 
 TypeVariant Pointer::pointerType() const { return *pointerType_; }
 
-Pointer::Pointer(const Pointer& other) : pointerType_((TypeVariant*)malloc(sizeof(TypeVariant))) 
+Pointer::Pointer(const Pointer& other) : pointerType_(new TypeVariant()) 
 {
 	*pointerType_ = *other.pointerType_;
 }
@@ -54,7 +52,8 @@ Pointer& Pointer::operator=(const Pointer& other)
 {
 	if (this != &other)
 	{
-		pointerType_ = (TypeVariant*)malloc(sizeof(TypeVariant));
+		if(pointerType_ == nullptr)
+			pointerType_ = std::make_unique<TypeVariant>();
 		*pointerType_ = *other.pointerType_;
 	}
 	return *this;
@@ -76,15 +75,13 @@ bool Pointer::operator==(const Pointer& other) const
 
 
 
-Array::Array(TypeVariant elementType, size_t count) : elementType_((TypeVariant*)malloc(sizeof(TypeVariant))), count_(count) 
+Array::Array(TypeVariant elementType, size_t count) : elementType_(new TypeVariant), count_(count) 
 {
 	*elementType_ = elementType;
 }
 
 Array::~Array()
 {
-	if (elementType_)
-		free(elementType_);
 	elementType_ = nullptr;
 }
 
@@ -96,7 +93,7 @@ size_t Array::size() const { return sizeOfTypeVariant(*elementType_) * count_; }
 
 Array::Array(Array&& other) : elementType_(std::move(other.elementType_)), count_(other.count_) {}
 
-Array::Array(const Array& other) : elementType_((TypeVariant*)malloc(sizeof(TypeVariant))), count_(other.count_) 
+Array::Array(const Array& other) : elementType_(new TypeVariant), count_(other.count_) 
 {
 	*elementType_ = *other.elementType_;
 }
@@ -118,9 +115,7 @@ Array& Array::operator=(const Array& other)
 	if (this != &other)
 	{
 		if(elementType_ == nullptr)
-		{	
-			elementType_ = (TypeVariant*)malloc(sizeof(TypeVariant));
-		}
+			elementType_ = std::make_unique<TypeVariant>();
 		*elementType_ = *other.elementType_;
 		count_ = other.count_;
 	}
@@ -140,15 +135,13 @@ bool Array::isTypeCompatible(const Array& other) const
 
 
 Function::Function(TypeVariant returnType, const std::vector<TypeVariant>& argumentsTypes) :
-	returnType_((TypeVariant*)malloc(sizeof(TypeVariant))), argumentsTypes_(argumentsTypes) 
+	returnType_(new TypeVariant), argumentsTypes_(argumentsTypes) 
 {
 	*returnType_ = returnType;
 }
 
 Function::~Function()
 {
-	if (returnType_)
-		free(returnType_);
 	returnType_ = nullptr;
 }
 
@@ -156,7 +149,7 @@ Function::Function(Function&& other) :
 	returnType_(std::move(other.returnType_)), argumentsTypes_(std::move(other.argumentsTypes_)) {}
 
 Function::Function(const Function& other) :
-	returnType_((TypeVariant*)malloc(sizeof(TypeVariant))), argumentsTypes_(other.argumentsTypes_) 
+	returnType_(new TypeVariant), argumentsTypes_(other.argumentsTypes_) 
 {
 	*returnType_ = *other.returnType_;
 }
@@ -165,7 +158,8 @@ Function& Function::operator=(const Function& other)
 {
 	if (this != &other)
 	{
-		returnType_ = (TypeVariant*)malloc(sizeof(TypeVariant));
+		if(returnType_ == nullptr)
+			returnType_ = std::make_unique<TypeVariant>();
 		*returnType_ = *other.returnType_;
 		argumentsTypes_ = other.argumentsTypes_;
 	}

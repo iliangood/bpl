@@ -28,7 +28,7 @@ class TypeVariant;
 
 class Function
 {
-	TypeVariant* returnType_;
+	std::unique_ptr<TypeVariant> returnType_;
 	std::vector<TypeVariant> argumentsTypes_;
 public:
 	
@@ -51,7 +51,7 @@ public:
 
 class Pointer
 {
-	TypeVariant* pointerType_;
+	std::unique_ptr<TypeVariant> pointerType_;
 public:
 	Pointer(TypeVariant pointerType);
 	~Pointer();
@@ -70,7 +70,7 @@ public:
 
 class Array
 {
-	TypeVariant* elementType_;
+	std::unique_ptr<TypeVariant> elementType_;
 	size_t count_;
 public:
 	Array(TypeVariant elementType, size_t count);

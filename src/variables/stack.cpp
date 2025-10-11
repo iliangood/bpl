@@ -2,7 +2,7 @@
 
 std::optional<Stack> Stack::make(size_t capacity, bool cleanStackBeforeUse)
 {
-	uint8_t* data = (uint8_t*)malloc(capacity*sizeof(uint8_t));
+	uint8_t* data = new uint8_t[capacity];
 	if(!data)
 		return std::nullopt;
 	return Stack(data, capacity, cleanStackBeforeUse);
