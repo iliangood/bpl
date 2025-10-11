@@ -8,6 +8,7 @@
 #include <variant>
 #include <cstddef>
 #include <memory>
+#include <stdexcept>
 
 class BaseType
 {
@@ -33,7 +34,6 @@ class Function
 public:
 	
 	Function(TypeVariant returnType, const std::vector<TypeVariant>& argumentsTypes);
-	~Function();
 
 	Function(Function&&);
 	Function(const Function&);
@@ -54,7 +54,6 @@ class Pointer
 	std::unique_ptr<TypeVariant> pointerType_;
 public:
 	Pointer(TypeVariant pointerType);
-	~Pointer();
 
 	Pointer(const Pointer& other);
 	Pointer(Pointer&& other);
@@ -74,7 +73,6 @@ class Array
 	size_t count_;
 public:
 	Array(TypeVariant elementType, size_t count);
-	~Array();
 	Array(Array&&);
 	Array(const Array&);
 	Array& operator=(Array&&);

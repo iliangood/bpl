@@ -34,11 +34,6 @@ Pointer::Pointer(TypeVariant pointerType) : pointerType_(new TypeVariant)
 	*pointerType_ = pointerType;
 }
 
-Pointer::~Pointer()
-{
-	pointerType_ = nullptr;
-}
-
 TypeVariant Pointer::pointerType() const { return *pointerType_; }
 
 Pointer::Pointer(const Pointer& other) : pointerType_(new TypeVariant()) 
@@ -80,33 +75,41 @@ Array::Array(TypeVariant elementType, size_t count) : elementType_(new TypeVaria
 	*elementType_ = elementType;
 }
 
-Array::~Array()
-{
-	elementType_ = nullptr;
-}
 
-TypeVariant Array::elementType() const { return *elementType_; }
+TypeVariant Array::elementType() const 
+{
+	if(elementType_ == nullptr)
+		throw std::runtime_error("Array::elementType() called on null elementType_");
+	return *elementType_;
+}
 
 size_t Array::count() const { return count_; }
 
-size_t Array::size() const { return sizeOfTypeVariant(*elementType_) * count_; }
+size_t Array::size() const 
+{
+	if(elementType_ == nullptr)
+		throw std::runtime_error("Array::size() called on null elementType_");
+	 return sizeOfTypeVariant(*elementType_) * count_;
+}
 
 Array::Array(Array&& other) : elementType_(std::move(other.elementType_)), count_(other.count_) {}
 
 Array::Array(const Array& other) : elementType_(new TypeVariant), count_(other.count_) 
 {
-	*elementType_ = *other.elementType_;
+	*elementType_ = other.elementType();
 }
 
 Array& Array::operator=(Array&& other)
 {
-	if (this != &other)
-	{
-		elementType_ = std::move(other.elementType_);
-		count_ = other.count_;
-		other.count_ = 0;
-		other.elementType_ = nullptr;
-	}
+	if (this == &other)
+		return *this;
+	if(elementType_ == nullptr)
+		elementType_ = std::make_unique<TypeVariant>();
+	elementType_ = std::move(other.elementType_);
+	count_ = other.count_;
+	other.count_ = 0;
+	other.elementType_ = nullptr;
+	
 	return *this;
 }
 
@@ -124,12 +127,12 @@ Array& Array::operator=(const Array& other)
 
 bool Array::operator==(const Array& other) const
 {
-	return *elementType_ == *other.elementType_ && count_ == other.count_;
+	return elementType() == other.elementType() && count_ == other.count_;
 }
 
 bool Array::isTypeCompatible(const Array& other) const
 {
-	return *elementType_ == *other.elementType_;
+	return elementType() == other.elementType();
 }
 
 
@@ -140,39 +143,38 @@ Function::Function(TypeVariant returnType, const std::vector<TypeVariant>& argum
 	*returnType_ = returnType;
 }
 
-Function::~Function()
-{
-	returnType_ = nullptr;
-}
-
 Function::Function(Function&& other) :
 	returnType_(std::move(other.returnType_)), argumentsTypes_(std::move(other.argumentsTypes_)) {}
 
 Function::Function(const Function& other) :
 	returnType_(new TypeVariant), argumentsTypes_(other.argumentsTypes_) 
 {
-	*returnType_ = *other.returnType_;
+	*returnType_ = other.returnType();
 }
 
 Function& Function::operator=(const Function& other)
 {
-	if (this != &other)
-	{
-		if(returnType_ == nullptr)
-			returnType_ = std::make_unique<TypeVariant>();
-		*returnType_ = *other.returnType_;
-		argumentsTypes_ = other.argumentsTypes_;
-	}
+	if (this == &other)
+	return *this;
+
+	if(returnType_ == nullptr)
+		returnType_ = std::make_unique<TypeVariant>();
+
+	*returnType_ = *other.returnType_;
+	argumentsTypes_ = other.argumentsTypes_;
 	return *this;
 }
 
 Function& Function::operator=(Function&& other)
 {
-	if (this != &other)
-	{
-		returnType_ = std::move(other.returnType_);
-		argumentsTypes_ = std::move(other.argumentsTypes_);
-	}
+	if (this == &other)
+		return *this;
+
+	if(returnType_ == nullptr)
+		returnType_ = std::make_unique<TypeVariant>();
+
+	returnType_ = std::move(other.returnType_);
+	argumentsTypes_ = std::move(other.argumentsTypes_);
 	return *this;
 }
 
@@ -182,7 +184,7 @@ const std::vector<TypeVariant>& Function::argumentsTypes() const { return argume
 
 bool Function::operator==(const Function& other) const
 {
-	return *returnType_ == *other.returnType_ && argumentsTypes_ == other.argumentsTypes_;
+	return returnType() == other.returnType() && argumentsTypes_ == other.argumentsTypes_;
 }
 
 
@@ -308,6 +310,7 @@ bool isTypeCompatible(const TypeVariant& a, const TypeVariant& b)
 		return std::get<Array>(a).isTypeCompatible(std::get<Array>(b));
 	return false;
 }
+
 bool isTypeCompatible(const TypeVariant* a, const TypeVariant* b)
 {
 	if (a == nullptr || b == nullptr)
@@ -315,7 +318,7 @@ bool isTypeCompatible(const TypeVariant* a, const TypeVariant* b)
 	return isTypeCompatible(*a, *b);
 }
 
-bool isTypeCompatible(const TypeVariant* a, const TypeVariant* b)
+bool isTypeCompatible(const std::unique_ptr<TypeVariant>& a, const std::unique_ptr<TypeVariant>& b)
 {
 	if (a == nullptr || b == nullptr)
 		return false;
