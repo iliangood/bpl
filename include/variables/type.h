@@ -112,15 +112,15 @@ public:
 	const std::vector<TypeVariant>& baseTypes() const;
 };
 
-class TypeVariant : public std::variant<std::shared_ptr<const BaseType>, std::shared_ptr<const Struct>, Function, Pointer, Array>
+class TypeVariant : public std::variant<const BaseType*, const Struct*, Function, Pointer, Array>
 {
 public:
     // Перенаправляем конструкторы variant
-    using std::variant<std::shared_ptr<const BaseType>, std::shared_ptr<const Struct>, Function, Pointer, Array>::variant;
+    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::variant;
 
     // Перенаправляем другие ключевые методы (holds_alternative, get и т.д.)
-    using std::variant<std::shared_ptr<const BaseType>, std::shared_ptr<const Struct>, Function, Pointer, Array>::index;
-    using std::variant<std::shared_ptr<const BaseType>, std::shared_ptr<const Struct>, Function, Pointer, Array>::operator=;
+    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::index;
+    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::operator=;
     // Добавьте другие, если нужно (visit, emplace и т.д.)
 };
 
