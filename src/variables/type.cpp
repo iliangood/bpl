@@ -22,13 +22,31 @@ size_t Struct::size() const { return totalSize_; }
 
 const std::vector<TypeVariant>& Struct::baseTypes() const { return types_; }
 
+bool Struct::operator==(const Struct& other) const
+{
+	return types_ == other.types_;
+}
 
 
-Pointer::Pointer(TypeVariant pointerType) : pointerType_(std::make_shared<TypeVariant>(pointerType)) {}
+
+Pointer::Pointer(TypeVariant pointerType) : pointerType_((TypeVariant*)malloc(sizeof(TypeVariant))) 
+{
+	*pointerType_ = pointerType;
+}
+
+Pointer::~Pointer()
+{
+	if (pointerType_)
+		free(pointerType_);
+	pointerType_ = nullptr;
+}
 
 TypeVariant Pointer::pointerType() const { return *pointerType_; }
 
-Pointer::Pointer(const Pointer& other) : pointerType_(std::make_shared<TypeVariant>(*other.pointerType_)) {}
+Pointer::Pointer(const Pointer& other) : pointerType_((TypeVariant*)malloc(sizeof(TypeVariant))) 
+{
+	*pointerType_ = *other.pointerType_;
+}
 
 Pointer::Pointer(Pointer&& other) : pointerType_(std::move(other.pointerType_)) {}
 
@@ -36,7 +54,8 @@ Pointer& Pointer::operator=(const Pointer& other)
 {
 	if (this != &other)
 	{
-		pointerType_ = std::make_shared<TypeVariant>(*other.pointerType_);
+		pointerType_ = (TypeVariant*)malloc(sizeof(TypeVariant));
+		*pointerType_ = *other.pointerType_;
 	}
 	return *this;
 }
@@ -57,7 +76,17 @@ bool Pointer::operator==(const Pointer& other) const
 
 
 
-Array::Array(TypeVariant elementType, size_t count) : elementType_(std::make_shared<TypeVariant>(elementType)), count_(count) {}
+Array::Array(TypeVariant elementType, size_t count) : elementType_((TypeVariant*)malloc(sizeof(TypeVariant))), count_(count) 
+{
+	*elementType_ = elementType;
+}
+
+Array::~Array()
+{
+	if (elementType_)
+		free(elementType_);
+	elementType_ = nullptr;
+}
 
 TypeVariant Array::elementType() const { return *elementType_; }
 
@@ -67,7 +96,10 @@ size_t Array::size() const { return sizeOfTypeVariant(*elementType_) * count_; }
 
 Array::Array(Array&& other) : elementType_(std::move(other.elementType_)), count_(other.count_) {}
 
-Array::Array(const Array& other) : elementType_(std::make_shared<TypeVariant>(*other.elementType_)), count_(other.count_) {}
+Array::Array(const Array& other) : elementType_((TypeVariant*)malloc(sizeof(TypeVariant))), count_(other.count_) 
+{
+	*elementType_ = *other.elementType_;
+}
 
 Array& Array::operator=(Array&& other)
 {
@@ -75,6 +107,8 @@ Array& Array::operator=(Array&& other)
 	{
 		elementType_ = std::move(other.elementType_);
 		count_ = other.count_;
+		other.count_ = 0;
+		other.elementType_ = nullptr;
 	}
 	return *this;
 }
@@ -83,28 +117,56 @@ Array& Array::operator=(const Array& other)
 {
 	if (this != &other)
 	{
-		elementType_ = std::make_shared<TypeVariant>(*other.elementType_);
+		if(elementType_ == nullptr)
+		{	
+			elementType_ = (TypeVariant*)malloc(sizeof(TypeVariant));
+		}
+		*elementType_ = *other.elementType_;
 		count_ = other.count_;
 	}
 	return *this;
 }
 
+bool Array::operator==(const Array& other) const
+{
+	return *elementType_ == *other.elementType_ && count_ == other.count_;
+}
+
+bool Array::isTypeCompatible(const Array& other) const
+{
+	return *elementType_ == *other.elementType_;
+}
+
 
 
 Function::Function(TypeVariant returnType, const std::vector<TypeVariant>& argumentsTypes) :
-	returnType_(std::make_shared<TypeVariant>(returnType)), argumentsTypes_(argumentsTypes) {}
+	returnType_((TypeVariant*)malloc(sizeof(TypeVariant))), argumentsTypes_(argumentsTypes) 
+{
+	*returnType_ = returnType;
+}
+
+Function::~Function()
+{
+	if (returnType_)
+		free(returnType_);
+	returnType_ = nullptr;
+}
 
 Function::Function(Function&& other) :
 	returnType_(std::move(other.returnType_)), argumentsTypes_(std::move(other.argumentsTypes_)) {}
 
 Function::Function(const Function& other) :
-	returnType_(std::make_shared<TypeVariant>(*other.returnType_)), argumentsTypes_(other.argumentsTypes_) {}
+	returnType_((TypeVariant*)malloc(sizeof(TypeVariant))), argumentsTypes_(other.argumentsTypes_) 
+{
+	*returnType_ = *other.returnType_;
+}
 
 Function& Function::operator=(const Function& other)
 {
 	if (this != &other)
 	{
-		returnType_ = std::make_shared<TypeVariant>(*other.returnType_);
+		returnType_ = (TypeVariant*)malloc(sizeof(TypeVariant));
+		*returnType_ = *other.returnType_;
 		argumentsTypes_ = other.argumentsTypes_;
 	}
 	return *this;
@@ -149,7 +211,7 @@ bool isPointer(const TypeVariant& var)
 
 bool isFunction(const TypeVariant& var) 
 {
-	return std::holds_alternative<const Function*>(var);
+	return std::holds_alternative<Function>(var);
 }
 
 bool isArray(const TypeVariant& var) 
@@ -164,7 +226,7 @@ size_t sizeOfTypeVariant(const TypeVariant& var)
 	else if (isStruct(var))
 		return std::get<const Struct*>(var)->size();
 	else if (isFunction(var))
-		return std::get<const Function*>(var)->size();
+		return std::get<Function>(var).size();
 	else if (isPointer(var))
 		return std::get<Pointer>(var).size();
 	else if (isArray(var))
@@ -172,32 +234,32 @@ size_t sizeOfTypeVariant(const TypeVariant& var)
 	return 0;
 }
 
-bool isBaseType(std::shared_ptr<TypeVariant> var) 
+bool isBaseType(TypeVariant* var) 
 {
 	return isBaseType(*var);
 }
 
-bool isStruct(std::shared_ptr<TypeVariant> var) 
+bool isStruct(TypeVariant* var) 
 {
 	return isStruct(*var);
 }
 
-bool isPointer(std::shared_ptr<TypeVariant> var) 
+bool isPointer(TypeVariant* var) 
 {
 	return isPointer(*var);
 }
 
-bool isFunction(std::shared_ptr<TypeVariant> var) 
+bool isFunction(TypeVariant* var) 
 {
 	return isFunction(*var);
 }
 
-bool isArray(std::shared_ptr<TypeVariant> var) 
+bool isArray(TypeVariant* var) 
 {
 	return isArray(*var);
 }
 
-size_t sizeOfTypeVariant(std::shared_ptr<TypeVariant> var)
+size_t sizeOfTypeVariant(TypeVariant* var)
 {
 	return sizeOfTypeVariant(*var);
 }
@@ -211,7 +273,7 @@ bool operator==(const TypeVariant& a, const TypeVariant& b)
 	else if (isStruct(a))
 		return std::get<const Struct*>(a) == std::get<const Struct*>(b);
 	else if (isFunction(a))
-		return std::get<const Function*>(a) == std::get<const Function*>(b);
+		return std::get<Function>(a) == std::get<Function>(b);
 	else if (isPointer(a))
 		return std::get<Pointer>(a) == std::get<Pointer>(b);
 	else if (isArray(a))

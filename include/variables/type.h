@@ -2,6 +2,7 @@
 #define TYPE_H
 
 #include <string>
+#include <cstring>
 #include <vector>
 #include <optional>
 #include <variant>
@@ -27,10 +28,12 @@ class TypeVariant;
 
 class Function
 {
-	std::shared_ptr<TypeVariant> returnType_;
+	TypeVariant* returnType_;
 	std::vector<TypeVariant> argumentsTypes_;
 public:
+	
 	Function(TypeVariant returnType, const std::vector<TypeVariant>& argumentsTypes);
+	~Function();
 
 	Function(Function&&);
 	Function(const Function&);
@@ -48,9 +51,10 @@ public:
 
 class Pointer
 {
-	std::shared_ptr<TypeVariant> pointerType_;
+	TypeVariant* pointerType_;
 public:
 	Pointer(TypeVariant pointerType);
+	~Pointer();
 
 	Pointer(const Pointer& other);
 	Pointer(Pointer&& other);
@@ -66,14 +70,21 @@ public:
 
 class Array
 {
-	std::shared_ptr<TypeVariant> elementType_;
+	TypeVariant* elementType_;
 	size_t count_;
 public:
 	Array(TypeVariant elementType, size_t count);
+	~Array();
 	Array(Array&&);
 	Array(const Array&);
 	Array& operator=(Array&&);
 	Array& operator=(const Array&);
+
+	bool operator==(const Array& other) const;
+	bool operator!=(const Array& other) const { return !(*this == other); }
+	bool isTypeCompatible(const Array& other) const;
+	bool TypeCmp(const Array& other) const { return isTypeCompatible(other); }
+	bool typecheck(const Array& other) const { return TypeCmp(other); }
 
 	TypeVariant elementType() const;
 	size_t count() const;
@@ -92,23 +103,27 @@ public:
 	Struct& operator=(Struct&&) = default;
 	Struct& operator=(const Struct&) = default;
 
+	bool operator==(const Struct& other) const;
+	bool operator!=(const Struct& other) const { return !(*this == other); }
+
 	std::string name() const;
 	size_t size() const;
 
 	const std::vector<TypeVariant>& baseTypes() const;
 };
 
-class TypeVariant : public std::variant<const BaseType*, const Struct*, const Function*, Pointer, Array>
+class TypeVariant : public std::variant<const BaseType*, const Struct*, Function, Pointer, Array>
 {
 public:
     // Перенаправляем конструкторы variant
-    using std::variant<const BaseType*, const Struct*, const Function*, Pointer, Array>::variant;
+    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::variant;
 
     // Перенаправляем другие ключевые методы (holds_alternative, get и т.д.)
-    using std::variant<const BaseType*, const Struct*, const Function*, Pointer, Array>::index;
-    using std::variant<const BaseType*, const Struct*, const Function*, Pointer, Array>::operator=;
+    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::index;
+    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::operator=;
     // Добавьте другие, если нужно (visit, emplace и т.д.)
 };
+
 
 
 bool isBaseType(const TypeVariant& var);
@@ -118,15 +133,18 @@ bool isFunction(const TypeVariant& var);
 bool isArray(const TypeVariant& var);
 size_t sizeOfTypeVariant(const TypeVariant& var);
 
-bool isBaseType(std::shared_ptr<TypeVariant> var);
-bool isStruct(std::shared_ptr<TypeVariant> var);
-bool isPointer(std::shared_ptr<TypeVariant> var);
-bool isFunction(std::shared_ptr<TypeVariant> var);
-bool isArray(std::shared_ptr<TypeVariant> var);
-size_t sizeOfTypeVariant(std::shared_ptr<TypeVariant> var);
+bool isBaseType(TypeVariant* var);
+bool isStruct(TypeVariant* var);
+bool isPointer(TypeVariant* var);
+bool isFunction(TypeVariant* var);
+bool isArray(TypeVariant* var);
+size_t sizeOfTypeVariant(TypeVariant* var);
 
 bool operator==(const TypeVariant& a, const TypeVariant& b);
 bool operator!=(const TypeVariant& a, const TypeVariant& b);
+
+bool isTypeCompatible(const TypeVariant& a, const TypeVariant& b);
+bool isTypeCompatible(TypeVariant* a, TypeVariant* b);
 
 
 #endif
