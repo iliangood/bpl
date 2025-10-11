@@ -230,31 +230,43 @@ size_t sizeOfTypeVariant(const TypeVariant& var)
 
 bool isBaseType(const std::unique_ptr<TypeVariant>& var) 
 {
+	if(var == nullptr)
+		return false;
 	return isBaseType(*var);
 }
 
 bool isStruct(const std::unique_ptr<TypeVariant>& var) 
 {
+	if(var == nullptr)
+		return false;
 	return isStruct(*var);
 }
 
 bool isPointer(const std::unique_ptr<TypeVariant>& var) 
 {
+	if(var == nullptr)
+		return false;
 	return isPointer(*var);
 }
 
 bool isFunction(const std::unique_ptr<TypeVariant>& var) 
 {
+	if(var == nullptr)
+		return false;
 	return isFunction(*var);
 }
 
 bool isArray(const std::unique_ptr<TypeVariant>& var) 
 {
+	if(var == nullptr)
+		return false;
 	return isArray(*var);
 }
 
 size_t sizeOfTypeVariant(const std::unique_ptr<TypeVariant>& var)
 {
+	if(var == nullptr)
+		return false;
 	return sizeOfTypeVariant(*var);
 }
 
@@ -278,4 +290,34 @@ bool operator==(const TypeVariant& a, const TypeVariant& b)
 bool operator!=(const TypeVariant& a, const TypeVariant& b)
 {
 	return !(a == b);
+}
+
+bool isTypeCompatible(const TypeVariant& a, const TypeVariant& b)
+{
+	if (a.index() != b.index())
+		return false;
+	if (isBaseType(a))
+		return std::get<const BaseType*>(a) == std::get<const BaseType*>(b);
+	else if (isStruct(a))
+		return std::get<const Struct*>(a) == std::get<const Struct*>(b);
+	else if (isFunction(a))
+		return std::get<Function>(a) == std::get<Function>(b);
+	else if (isPointer(a))
+		return std::get<Pointer>(a) == std::get<Pointer>(b);
+	else if (isArray(a))
+		return std::get<Array>(a).isTypeCompatible(std::get<Array>(b));
+	return false;
+}
+bool isTypeCompatible(const TypeVariant* a, const TypeVariant* b)
+{
+	if (a == nullptr || b == nullptr)
+		return false;
+	return isTypeCompatible(*a, *b);
+}
+
+bool isTypeCompatible(const TypeVariant* a, const TypeVariant* b)
+{
+	if (a == nullptr || b == nullptr)
+		return false;
+	return isTypeCompatible(*a, *b);
 }

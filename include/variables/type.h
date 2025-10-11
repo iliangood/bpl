@@ -144,7 +144,8 @@ bool operator==(const TypeVariant& a, const TypeVariant& b);
 bool operator!=(const TypeVariant& a, const TypeVariant& b);
 
 bool isTypeCompatible(const TypeVariant& a, const TypeVariant& b);
-bool isTypeCompatible(TypeVariant* a, TypeVariant* b);
+bool isTypeCompatible(const TypeVariant* a, const TypeVariant* b);
+bool isTypeCompatible(const std::unique_ptr<TypeVariant>& a, const std::unique_ptr<TypeVariant>& b);
 
 
 #endif
