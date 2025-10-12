@@ -9,7 +9,7 @@ add_library(utils src/utils.cpp include/utils.h)
 
 add_library(stack src/variables/stack.cpp include/variables/stack.h)
 
-add_library(interpreter src/interpreter/interpreter.cpp include/interpreter/interpreter.h)
+add_library(interpreter src/interpreter/processor.cpp include/interpreter/processor.h)
 
 add_library(variables src/variables/type.cpp include/variables/type.h)
 

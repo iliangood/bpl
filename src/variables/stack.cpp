@@ -17,7 +17,7 @@ uint8_t* Stack::push(const ElementInfo& element)
 	if (top_ + element.size() > capacity_)
 		resize((top_ + element.size()) * 2);
 
-	elements_.push_back(Element(element, top_ + data_));
+	elements_.push_back(Element(element, top_));
 	if(cleanStackBeforeUse_)
 		memset(data_ + top_, 0, element.size());
 	top_ += element.size();
@@ -28,7 +28,7 @@ uint8_t* Stack::push(const ElementInfo& element)
 void Stack::pop()
 {
 	if (elements_.back().size() > top_)
-		return;
+		throw std::runtime_error("Stack::pop() Incorrect Stack: elements_.back().size() > top_");
 	top_ -= elements_.back().size();
 	elements_.pop_back();
 	--levels_.back();
@@ -80,6 +80,15 @@ const uint8_t* Stack::atFromEnd(size_t index) const
 	for(size_t i = 0; i <= index; ++i)
 		offset -= elements_[elements_.size() - 1 - i].size();
 	return data_ + offset;
+}
+
+size_t Stack::find(std::string name)
+{
+	for(size_t i = 0; i < elementCount(); ++i)
+	{
+		if()
+	}
+	return 
 }
 
 void Stack::resize(size_t new_capacity)

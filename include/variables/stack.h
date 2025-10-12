@@ -24,11 +24,10 @@ public:
 
 class Element : public ElementInfo
 {
-	uint8_t* ptr_;
+	size_t pos_;
 public:
-	Element(ElementInfo info, uint8_t* ptr) : ElementInfo(info), ptr_(ptr) {}
-	uint8_t* ptr() { return ptr_; }
-	const uint8_t* ptr() const { return ptr_; }
+	Element(ElementInfo info, size_t pos) : ElementInfo(info), pos_(pos) {}
+	size_t pos() { return pos_; }
 };
 
 class Stack
@@ -51,6 +50,11 @@ public:
 	
 	Element element(size_t index) const { return elements_.at(index); }
 	Element elementFromEnd(size_t index) const { return elements_.at(elements_.size() - 1 - index); }
+
+	size_t find(std::string name);
+
+	std::vector<Element>& elements() { return elements_; }
+	size_t elementCount() { return elements_.size(); }
 	
 	uint8_t* push(const ElementInfo& element);
 	void pop();
