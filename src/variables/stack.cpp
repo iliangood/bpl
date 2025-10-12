@@ -1,25 +1,22 @@
 #include "variables/stack.h"
 
-std::optional<Stack> Stack::make(size_t capacity, bool cleanStackBeforeUse)
+Stack::Stack(size_t capacity, bool cleanStackBeforeUse): top_(0), capacity_(capacity), levels_({0}), cleanStackBeforeUse_(cleanStackBeforeUse)
 {
-	uint8_t* data = new uint8_t[capacity];
+	uint8_t* data = (uint8_t*)malloc(sizeof(uint8_t) * capacity);
 	if(!data)
-		return std::nullopt;
-	return Stack(data, capacity, cleanStackBeforeUse);
+		throw std::bad_alloc();
 }
 
 Stack::~Stack()
 {
-
+	free(data_);
 }
 
-std::optional<uint8_t*> Stack::push(const ElementInfo& element)
+uint8_t* Stack::push(const ElementInfo& element)
 {
 	if (top_ + element.size() > capacity_)
-	{
-		if(resize((top_ + element.size()) * 2) != 0)
-			return std::nullopt;
-	}
+		resize((top_ + element.size()) * 2);
+
 	elements_.push_back(Element(element, top_ + data_));
 	if(cleanStackBeforeUse_)
 		memset(data_ + top_, 0, element.size());
@@ -85,16 +82,12 @@ const uint8_t* Stack::atFromEnd(size_t index) const
 	return data_ + offset;
 }
 
-int Stack::resize(size_t new_capacity)
+void Stack::resize(size_t new_capacity)
 {
-	if(new_capacity <= capacity_)
-		return -1;
-	uint8_t* new_data = (uint8_t*)realloc(data_, new_capacity * sizeof(uint8_t));
-	if(!new_data)
-		return -1;
-	data_ = new_data;
+	data_ = (uint8_t*)realloc(data_, new_capacity * sizeof(uint8_t));
+	if(!data_)
+		throw std::bad_alloc();
 	capacity_ = new_capacity;
-	return 0;
 }
 
 void Stack::clear()

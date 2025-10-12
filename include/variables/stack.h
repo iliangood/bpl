@@ -7,6 +7,7 @@
 #include <optional>
 #include <inttypes.h>
 #include <cstring>
+#include <stdexcept>
 
 #include "variables/type.h"
 
@@ -38,10 +39,9 @@ class Stack
 	size_t capacity_;
 	std::vector<size_t> levels_;
 	bool cleanStackBeforeUse_;
-	Stack(uint8_t* data, size_t capacity, bool cleanStackBeforeUse = false) : 
-	data_(data), top_(0), capacity_(capacity), levels_({0}), cleanStackBeforeUse_(cleanStackBeforeUse) {};
 public:
-	static std::optional<Stack> make(size_t capacity, bool cleanStackBeforeUse = false);
+	Stack(size_t capacity = 1 << 20, bool cleanStackBeforeUse = false);
+	
 	~Stack();
 	
 	size_t capacity() const { return capacity_; }
@@ -52,7 +52,7 @@ public:
 	Element element(size_t index) const { return elements_.at(index); }
 	Element elementFromEnd(size_t index) const { return elements_.at(elements_.size() - 1 - index); }
 	
-	std::optional<uint8_t*> push(const ElementInfo& element);
+	uint8_t* push(const ElementInfo& element);
 	void pop();
 	void pop(size_t count);
 
@@ -74,7 +74,7 @@ public:
 	uint8_t* atFromEnd(size_t index);
 	const uint8_t* atFromEnd(size_t index) const;
 
-	int resize(size_t new_capacity);
+	void resize(size_t new_capacity);
 	void clear();
 
 };
