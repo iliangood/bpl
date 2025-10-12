@@ -51,6 +51,7 @@ class Processor
 	std::vector<BaseType> baseTypes_;
 	std::vector<Struct> structs_;
 	Stack stack_;
+	Stack globalVariablesStack;
 	bool finished_;
 
 	void execute(Instruction instruction);
