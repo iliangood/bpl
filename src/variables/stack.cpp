@@ -82,13 +82,16 @@ const uint8_t* Stack::atFromEnd(size_t index) const
 	return data_ + offset;
 }
 
-size_t Stack::find(std::string name)
+std::optional<size_t> Stack::find(std::string name)
 {
 	for(size_t i = 0; i < elementCount(); ++i)
 	{
-		if()
+		if(elementFromEnd(i).name() == name)
+		{
+			return i;
+		}
 	}
-	return 
+	return std::nullopt;
 }
 
 void Stack::resize(size_t new_capacity)

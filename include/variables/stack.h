@@ -51,7 +51,7 @@ public:
 	Element element(size_t index) const { return elements_.at(index); }
 	Element elementFromEnd(size_t index) const { return elements_.at(elements_.size() - 1 - index); }
 
-	size_t find(std::string name);
+	std::optional<size_t> find(std::string name);
 
 	std::vector<Element>& elements() { return elements_; }
 	size_t elementCount() { return elements_.size(); }
