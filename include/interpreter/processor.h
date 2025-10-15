@@ -53,7 +53,7 @@ class Processor
 	Stack globalVariablesStack;
 	bool finished_;
 
-	std::optional<std::variant<int, std::string>> execute(Instruction instruction);
+	std::optional<int> execute(Instruction instruction);
 	public:
 	Processor(std::vector<Instruction> program);
 	void run();
