@@ -1,13 +1,13 @@
 #include "interpreter/processor.h"
 
 
-void Processor::execute(Instruction instruction)
+std::optional<std::variant<int, std::string>> Processor::execute(Instruction instruction)
 {
 	if(finished())
 	if(instruction.opCode() == OpCode::end)
 	{
 		finished_ = true;
-		return;
+		return std::nullopt;
 	}	
 
 }
