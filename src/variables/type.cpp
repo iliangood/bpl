@@ -1,5 +1,6 @@
 #include "variables/type.h"
 
+#include "interpreter/processor.h"
 
 
 
@@ -470,6 +471,11 @@ const std::vector<TypeVariant>& Function::argumentsTypes() const
 			throw std::runtime_error("std::vector<TypeVariant>& Function::argumentsTypes() called on invalid Function");
 	}
 	 return argumentsTypes_; 
+}
+
+size_t Function::size() const 
+{
+	return sizeof(std::vector<Instruction>);
 }
 
 bool Function::operator==(const Function& other) const

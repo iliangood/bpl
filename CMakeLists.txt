@@ -13,6 +13,8 @@ add_library(interpreter src/interpreter/processor.cpp include/interpreter/proces
 
 add_library(variables src/variables/type.cpp include/variables/type.h)
 
+target_link_libraries(interpreter variables stack utils)
+
 add_executable(ngl src/ngl.cpp)
 
 enable_testing()

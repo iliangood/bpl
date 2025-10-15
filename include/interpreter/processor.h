@@ -11,24 +11,23 @@
 
 enum class OpCode
 {
-	end = 0,
-	call,
-	ret,
-	init,
-	newLevel,
-	popLevel,
-	jmp,
-	cmp,
-	jpt,
-	add,
-	sub,
-	mul,
-	div 
+	end_ = 0,
+	call_,
+	ret_,
+	scopeRet_,
+	init_,
+	mov_,
+	if_,
+	while_,
+	add_,
+	sub_,
+	mul_,
+	div_ 
 };
 
+class Instruction;
 
-
-typedef  std::variant<std::string, size_t> ArgumentType;
+typedef std::variant<std::string, size_t, std::vector<Instruction>> ArgumentType;
 
 
 

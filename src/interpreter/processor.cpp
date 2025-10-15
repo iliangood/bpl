@@ -4,7 +4,7 @@
 void Processor::execute(Instruction instruction)
 {
 	if(finished())
-	if(instruction.opCode() == OpCode::end)
+	if(instruction.opCode() == OpCode::end_)
 	{
 		finished_ = true;
 		return;

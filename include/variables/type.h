@@ -10,6 +10,7 @@
 #include <memory>
 #include <stdexcept>
 
+
 #include "utils.h"
 
 class BaseType
@@ -49,7 +50,7 @@ public:
 	bool operator==(const Function& other) const;
 	bool operator!=(const Function& other) const { return !(*this == other); }
 
-	size_t size() const { return sizeof(void*); }
+	size_t size() const;
 	TypeVariant returnType() const;
 	const std::vector<TypeVariant>& argumentsTypes() const;
 };
