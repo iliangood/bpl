@@ -22,23 +22,37 @@ enum class OpCode
 	add_,
 	sub_,
 	mul_,
-	div_ 
+	div_,
+	stackRealloc_,
+	print_,
+	scan_,
+	cmp_,
+};
+
+enum class Condition
+{
+	eq_,
+	neq_,
+	lt_,
+	lte_,
+	gt_,
+	gte_
 };
 
 class Instruction;
 
-typedef std::variant<std::string, size_t, std::vector<Instruction>> ArgumentType;
+typedef std::variant<int64_t, std::string, Condition, size_t, std::vector<Instruction>> Argument;
 
 
 
 class Instruction
 {
 	OpCode opCode_;
-	std::vector<ArgumentType> arguments_;
+	std::vector<Argument> arguments_;
 public:
-	Instruction(OpCode opCode, std::vector<ArgumentType> arguments_);
+	Instruction(OpCode opCode, std::vector<Argument> arguments_);
 	OpCode opCode();
-	std::vector<ArgumentType> arguments();
+	std::vector<Argument> arguments();
 	bool isValid();
 };
 
@@ -50,13 +64,14 @@ class Processor
 	std::vector<BaseType> baseTypes_;
 	std::vector<Struct> structs_;
 	Stack stack_;
-	Stack globalVariablesStack;
+	std::vector<size_t> FunctionStackStartPositions_;
+	Stack FunctionReturnValues_;
 	bool finished_;
 
-	std::optional<int> execute(Instruction instruction);
+	std::optional<int64_t> execute(Instruction instruction);
 	public:
 	Processor(std::vector<Instruction> program);
-	void run();
+	std::optional<int64_t> run();
 
 	bool finished();
 };
