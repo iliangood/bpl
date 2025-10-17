@@ -125,7 +125,7 @@ bool Struct::isValid() const
 
 
 
-Pointer::Pointer(TypeVariant pointerType, bool onStack) : pointerType_(new TypeVariant), onStack_(onStack)
+Pointer::Pointer(TypeVariant pointerType) : pointerType_(new TypeVariant)
 {
 	*pointerType_ = pointerType;
 	if(getValidationLevel() >= ValidationLevel::basic)
@@ -203,16 +203,6 @@ bool Pointer::isValid() const
 	if(getValidationLevel() < ValidationLevel::basic)
 		return true;
 	return ::isValid(*pointerType_);
-}
-
-bool Pointer::onStack()
-{
-	if(getValidationLevel() >= ValidationLevel::full)
-	{
-		if(!isValid())
-			throw std::runtime_error("Pointer::pointerType() called on invalid Pointer");
-	}
-	return onStack_;
 }
 
 bool Pointer::operator==(const Pointer& other) const

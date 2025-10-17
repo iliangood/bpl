@@ -39,9 +39,11 @@ enum class Condition
 	gte_
 };
 
+
+
 class Instruction;
 
-typedef std::variant<int64_t, std::string, Condition, size_t, std::vector<Instruction>> Argument;
+typedef std::variant<int64_t, std::string, Condition, size_t, TypeVariant, std::vector<Instruction>> Argument;
 
 
 
@@ -50,7 +52,7 @@ class Instruction
 	OpCode opCode_;
 	std::vector<Argument> arguments_;
 public:
-	Instruction(OpCode opCode, std::vector<Argument> arguments_);
+	Instruction(OpCode opCode, std::vector<Argument> arguments_ = {});
 	OpCode opCode();
 	std::vector<Argument> arguments();
 	bool isValid();
@@ -72,6 +74,7 @@ class Processor
 	public:
 	Processor(std::vector<Instruction> program);
 	std::optional<int64_t> run();
+	void notifyStackReallocation(uint8_t* new_data);
 
 	bool finished();
 };

@@ -1,9 +1,10 @@
 #include "variables/stack.h"
+#include "interpreter/processor.h"
 
 Stack::Stack(size_t capacity, bool cleanStackBeforeUse): top_(0), capacity_(capacity), levels_({0}), cleanStackBeforeUse_(cleanStackBeforeUse)
 {
-	uint8_t* data = (uint8_t*)malloc(sizeof(uint8_t) * capacity);
-	if(!data)
+	data_ = (uint8_t*)malloc(sizeof(uint8_t) * capacity);
+	if(!data_)
 		throw std::bad_alloc();
 }
 
@@ -23,6 +24,11 @@ uint8_t* Stack::push(const ElementInfo& element)
 	top_ += element.size();
 	++levels_.back();
 	return data_ + top_ - element.size();
+}
+
+uint8_t* Stack::push(const Element& element)
+{
+	uint8_t* data = push(static_cast<const ElementInfo&>(element));
 }
 
 void Stack::pop()
@@ -100,6 +106,7 @@ void Stack::resize(size_t new_capacity)
 	if(!data_)
 		throw std::bad_alloc();
 	capacity_ = new_capacity;
+	processor_->notifyStackReallocation(data_);
 }
 
 void Stack::clear()

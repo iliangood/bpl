@@ -59,13 +59,10 @@ public:
 class Pointer
 {
 	std::unique_ptr<TypeVariant> pointerType_;
-	bool onStack_;
 public:
-	Pointer(TypeVariant pointerType, bool onStack);
+	Pointer(TypeVariant pointerType);
 
 	bool isValid() const;
-
-	bool onStack();
 
 	Pointer(const Pointer& other);
 	Pointer(Pointer&& other);

@@ -11,6 +11,8 @@
 
 #include "variables/type.h"
 
+class Processor;
+
 class ElementInfo
 {
 	std::string name_;
@@ -37,6 +39,7 @@ class Stack
 	size_t top_;
 	size_t capacity_;
 	std::vector<size_t> levels_;
+	Processor* processor_;
 	bool cleanStackBeforeUse_;
 public:
 	Stack(size_t capacity = 1 << 20, bool cleanStackBeforeUse = false);
@@ -57,6 +60,7 @@ public:
 	size_t elementCount() { return elements_.size(); }
 	
 	uint8_t* push(const ElementInfo& element);
+	uint8_t* push(const Element& element);
 	void pop();
 	void pop(size_t count);
 

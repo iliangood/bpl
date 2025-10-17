@@ -40,4 +40,9 @@ std::optional<int64_t> Processor::execute(Instruction instruction)
 	return std::nullopt;
 }	
 
+void Processor::notifyStackReallocation(uint8_t* new_data)
+{
+	execute(Instruction(OpCode::stackRealloc_, {}));
+}
+
 bool Processor::finished() { return finished_; }
