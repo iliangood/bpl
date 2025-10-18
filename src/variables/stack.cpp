@@ -55,20 +55,14 @@ uint8_t* Stack::at(size_t index)
 {
 	if(index >= elements_.size())
 		return nullptr;
-	size_t offset = 0;
-	for(size_t i = 0; i < index; ++i)
-		offset += elements_[i].size();
-	return data_ + offset;
+	return data_ + elements_[index].pos();
 }
 
 const uint8_t* Stack::at(size_t index) const
 {
 	if(index >= elements_.size())
 		return nullptr;
-	size_t offset = 0;
-	for(size_t i = 0; i < index; ++i)
-		offset += elements_[i].size();
-	return data_ + offset;
+	return data_ + elements_[index].pos();
 }
 
 uint8_t* Stack::atFromEnd(size_t index)

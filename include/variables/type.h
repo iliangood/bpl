@@ -38,6 +38,7 @@ class FunctionType
 	std::unique_ptr<TypeVariant> returnType_;
 	std::vector<TypeVariant> argumentsTypes_;
 public:
+	FunctionType() : returnType_(nullptr) {}
 	FunctionType(TypeVariant returnType, const std::vector<TypeVariant>& argumentsTypes);
 	
 	bool isValid() const;

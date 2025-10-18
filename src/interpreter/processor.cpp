@@ -26,6 +26,32 @@ StackIndex::StackIndex(Element element, Processor* processor) : processor_(proce
 		throw std::out_of_range("StackIndex::StackIndex(Element, Processor*) element index out of range");
 }
 
+bool StackIndex::isValid() const
+{
+	if(processor_ == nullptr)
+		return false;
+	if(index_ >= processor_->stack_.elementCount())
+		return false;
+	return true;
+}
+
+
+
+Function::Function(StackIndex index, Processor* processor) : processor_(processor)
+{
+	if(processor_ == nullptr)
+		throw std::invalid_argument("Function::Function(StackIndex, Processor*) null Processor pointer");
+	if(!index.isValid())
+		throw std::invalid_argument("Function::Function(StackIndex, Processor*) invalid StackIndex");
+	Element funcElement = processor_->stack_.element(index.index());
+	if(!isFunctionType(funcElement.type()))
+		throw std::invalid_argument("Function::Function(StackIndex, Processor*) index does not point to a FunctionType");
+	type_ = std::get<FunctionType>(funcElement.type());
+	body_ = *reinterpret_cast<std::vector<Instruction>*>(processor_->stack_.at(funcElement.pos()));
+}
+
+
+
 std::optional<int64_t> Processor::execute(Instruction instruction)
 {
 	if(finished())
@@ -44,16 +70,17 @@ std::optional<int64_t> Processor::execute(Instruction instruction)
 		}
 		throw std::runtime_error("Invalid end instruction");
 	}
+	
 	if(instruction.opCode() == OpCode::call_)
 	{
 		if(instruction.arguments().size() < 1)
 			throw std::runtime_error("Invalid call instruction");
 		if(!std::holds_alternative<TypeVariant>(instruction.arguments()[0]))
 			throw std::runtime_error("Invalid call instruction argument");
-		TypeVariant func_type_variant = std::get<TypeVariant>(instruction.arguments()[0]);
-		if(isFunctionType(func_type_variant))
+		FunctionType func;
+		if(isFunctionType(std::get<TypeVariant>(instruction.arguments()[0])))
 		{
-			FunctionType func = std::get<FunctionType>(func_type_variant);
+			func = std::get<FunctionType>(std::get<TypeVariant>(instruction.arguments()[0]));
 			if(!func.isValid())
 				throw std::runtime_error("Invalid function type in call instruction");
 		}

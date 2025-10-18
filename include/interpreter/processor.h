@@ -52,6 +52,7 @@ enum class Condition
 	gte_
 };
 
+
 class Processor;
 
 class StackIndex
@@ -81,11 +82,38 @@ public:
 		other.index_ = 0;
 		return *this;
 	}
+
+	bool isValid() const;
 };
 
 class Instruction;
 
-typedef std::variant<int64_t, size_t, std::string, Condition, TypeVariant, StackIndex, std::vector<Instruction>> Argument;
+class Function
+{
+	FunctionType type_;
+	std::vector<Instruction> body_;
+	Processor* processor_;
+public:
+	Function() : type_(), body_(), processor_(nullptr) {}
+	Function(FunctionType type, const std::vector<Instruction>& body, Processor* processor) : type_(type), body_(body), processor_(processor) {}
+	Function(const Function& other) : type_(other.type_), body_(other.body_), processor_(other.processor_) {}
+	Function(Function&& other) : type_(std::move(other.type_)), body_(std::move(other.body_)), processor_(other.processor_) {}
+
+	Function(StackIndex index, Processor* processor);
+
+	Function& operator=(const Function& other);
+
+	Function& operator=(Function&& other);
+
+	bool isValid() const;
+
+
+
+	FunctionType type() const { return type_; }
+	const std::vector<Instruction>& body() const { return body_; }
+};
+
+typedef std::variant<int64_t, size_t, std::string, Condition, TypeVariant, Function, StackIndex, std::vector<Instruction>> Argument;
 
 
 
@@ -104,6 +132,7 @@ public:
 class Processor
 {
 	friend class StackIndex;
+	friend class Function;
 
 	std::vector<Instruction> programm_;
 	std::vector<BaseType> baseTypes_;
