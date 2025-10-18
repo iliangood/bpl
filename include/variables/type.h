@@ -33,22 +33,22 @@ public:
 class TypeVariant;
 
 
-class Function
+class FunctionType
 {
 	std::unique_ptr<TypeVariant> returnType_;
 	std::vector<TypeVariant> argumentsTypes_;
 public:
-	Function(TypeVariant returnType, const std::vector<TypeVariant>& argumentsTypes);
+	FunctionType(TypeVariant returnType, const std::vector<TypeVariant>& argumentsTypes);
 	
 	bool isValid() const;
 
-	Function(Function&&);
-	Function(const Function&);
-	Function& operator=(Function&&);
-	Function& operator=(const Function&);
+	FunctionType(FunctionType&&);
+	FunctionType(const FunctionType&);
+	FunctionType& operator=(FunctionType&&);
+	FunctionType& operator=(const FunctionType&);
 
-	bool operator==(const Function& other) const;
-	bool operator!=(const Function& other) const { return !(*this == other); }
+	bool operator==(const FunctionType& other) const;
+	bool operator!=(const FunctionType& other) const { return !(*this == other); }
 
 	size_t size() const;
 	TypeVariant returnType() const;
@@ -135,13 +135,13 @@ public:
 	const std::vector<std::string>& fieldNames() const { return fieldNames_; }
 };
 
-class TypeVariant : public std::variant<const BaseType*, const Struct*, Function, Pointer, Array, StackLink>
+class TypeVariant : public std::variant<const BaseType*, const Struct*, FunctionType, Pointer, Array, StackLink>
 {
 public:
-    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array, StackLink>::variant;
+    using std::variant<const BaseType*, const Struct*, FunctionType, Pointer, Array, StackLink>::variant;
 
-    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array, StackLink>::index;
-    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array, StackLink>::operator=;
+    using std::variant<const BaseType*, const Struct*, FunctionType, Pointer, Array, StackLink>::index;
+    using std::variant<const BaseType*, const Struct*, FunctionType, Pointer, Array, StackLink>::operator=;
 };
 
 bool isValid(const TypeVariant& var);
@@ -150,7 +150,7 @@ bool isValid(const std::unique_ptr<TypeVariant>& var);
 bool isBaseType(const TypeVariant& var);
 bool isStruct(const TypeVariant& var);
 bool isPointer(const TypeVariant& var);
-bool isFunction(const TypeVariant& var);
+bool isFunctionType(const TypeVariant& var);
 bool isArray(const TypeVariant& var);
 bool isStackLink(const TypeVariant& var);
 size_t sizeOfTypeVariant(const TypeVariant& var);
@@ -158,7 +158,7 @@ size_t sizeOfTypeVariant(const TypeVariant& var);
 bool isBaseType(const std::unique_ptr<TypeVariant>& var);
 bool isStruct(const std::unique_ptr<TypeVariant>& var);
 bool isPointer(const std::unique_ptr<TypeVariant>& var);
-bool isFunction(const std::unique_ptr<TypeVariant>& var);
+bool isFunctionType(const std::unique_ptr<TypeVariant>& var);
 bool isArray(const std::unique_ptr<TypeVariant>& var);
 bool isStackLink(const std::unique_ptr<TypeVariant>& var);
 size_t sizeOfTypeVariant(const std::unique_ptr<TypeVariant>& var);

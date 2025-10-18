@@ -357,41 +357,41 @@ bool Array::isTypeCompatible(const Array& other) const
 
 
 
-Function::Function(TypeVariant returnType, const std::vector<TypeVariant>& argumentsTypes) :
+FunctionType::FunctionType(TypeVariant returnType, const std::vector<TypeVariant>& argumentsTypes) :
 	returnType_(new TypeVariant), argumentsTypes_(argumentsTypes) 
 {
 	*returnType_ = returnType;
 	if(getValidationLevel() >= ValidationLevel::basic)
 	{
 		if(!isValid())
-			throw std::invalid_argument("Function::Function(TypeVariant, const std::vector<TypeVariant>&) Invalid Function parameters");
+			throw std::invalid_argument("FunctionType::FunctionType(TypeVariant, const std::vector<TypeVariant>&) Invalid FunctionType parameters");
 	}
 }
 
-Function::Function(Function&& other) 
+FunctionType::FunctionType(FunctionType&& other) 
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Invalid Function::Function(Function&&) parameters");
+			throw std::invalid_argument("Invalid FunctionType::FunctionType(FunctionType&&) parameters");
 	}
 	returnType_ = std::move(other.returnType_);
 	argumentsTypes_ = std::move(other.argumentsTypes_);
 }
 
-Function::Function(const Function& other) 
+FunctionType::FunctionType(const FunctionType& other) 
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Invalid Function::Function(const Function&) parameters");
+			throw std::invalid_argument("Invalid FunctionType::FunctionType(const FunctionType&) parameters");
 	}
 	returnType_ = std::make_unique<TypeVariant>();
 	*returnType_ = other.returnType();
 	argumentsTypes_ = other.argumentsTypes_;
 }
 
-Function& Function::operator=(const Function& other)
+FunctionType& FunctionType::operator=(const FunctionType& other)
 {
 	if (this == &other)
 		return *this;
@@ -399,7 +399,7 @@ Function& Function::operator=(const Function& other)
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Invalid Function::operator=(const Function&) parameters");
+			throw std::invalid_argument("Invalid FunctionType::operator=(const FunctionType&) parameters");
 	}
 
 	if(returnType_ == nullptr)
@@ -410,7 +410,7 @@ Function& Function::operator=(const Function& other)
 	return *this;
 }
 
-Function& Function::operator=(Function&& other)
+FunctionType& FunctionType::operator=(FunctionType&& other)
 {
 	if (this == &other)
 		return *this;
@@ -418,7 +418,7 @@ Function& Function::operator=(Function&& other)
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Invalid Function::operator=(Function&&) parameters");
+			throw std::invalid_argument("Invalid FunctionType::operator=(FunctionType&&) parameters");
 	}
 
 	returnType_ = std::move(other.returnType_);
@@ -426,7 +426,7 @@ Function& Function::operator=(Function&& other)
 	return *this;
 }
 
-bool Function::isValid() const
+bool FunctionType::isValid() const
 {
 	if(returnType_ == nullptr)
 		return false;
@@ -442,34 +442,34 @@ bool Function::isValid() const
 	return true;
 }
 
-TypeVariant Function::returnType() const 
+TypeVariant FunctionType::returnType() const 
 {
 	if(returnType_ == nullptr)
-		throw std::runtime_error("Function::returnType() called on invalid Function");
+		throw std::runtime_error("FunctionType::returnType() called on invalid FunctionType");
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!isValid())
-			throw std::runtime_error("Function::returnType() called on invalid Function");
+			throw std::runtime_error("FunctionType::returnType() called on invalid FunctionType");
 	}
 	 return *returnType_; 
 }
 
-const std::vector<TypeVariant>& Function::argumentsTypes() const 
+const std::vector<TypeVariant>& FunctionType::argumentsTypes() const 
 {
 	if(getValidationLevel() >= ValidationLevel::full)
 	{
 		if(!isValid())
-			throw std::runtime_error("std::vector<TypeVariant>& Function::argumentsTypes() called on invalid Function");
+			throw std::runtime_error("std::vector<TypeVariant>& FunctionType::argumentsTypes() called on invalid FunctionType");
 	}
 	 return argumentsTypes_; 
 }
 
-size_t Function::size() const 
+size_t FunctionType::size() const 
 {
 	return sizeof(std::vector<Instruction>);
 }
 
-bool Function::operator==(const Function& other) const
+bool FunctionType::operator==(const FunctionType& other) const
 {
 	return returnType() == other.returnType() && argumentsTypes_ == other.argumentsTypes_;
 }
@@ -493,9 +493,9 @@ bool isValid(const TypeVariant& var)
 		}
 	else if(isPointer(var))
 		return std::get<Pointer>(var).isValid();
-	else if(isFunction(var))
+	else if(isFunctionType(var))
 	{
-		return std::get<Function>(var).isValid();
+		return std::get<FunctionType>(var).isValid();
 	}
 	else if(isArray(var))
 	{
@@ -523,9 +523,9 @@ bool isPointer(const TypeVariant& var)
 	return std::holds_alternative<Pointer>(var);
 }
 
-bool isFunction(const TypeVariant& var) 
+bool isFunctionType(const TypeVariant& var) 
 {
-	return std::holds_alternative<Function>(var);
+	return std::holds_alternative<FunctionType>(var);
 }
 
 bool isArray(const TypeVariant& var) 
@@ -544,8 +544,8 @@ size_t sizeOfTypeVariant(const TypeVariant& var)
 		return std::get<const BaseType*>(var)->size();
 	else if (isStruct(var))
 		return std::get<const Struct*>(var)->size();
-	else if (isFunction(var))
-		return std::get<Function>(var).size();
+	else if (isFunctionType(var))
+		return std::get<FunctionType>(var).size();
 	else if (isPointer(var))
 		return std::get<Pointer>(var).size();
 	else if (isArray(var))
@@ -576,11 +576,11 @@ bool isPointer(const std::unique_ptr<TypeVariant>& var)
 	return isPointer(*var);
 }
 
-bool isFunction(const std::unique_ptr<TypeVariant>& var) 
+bool isFunctionType(const std::unique_ptr<TypeVariant>& var) 
 {
 	if(var == nullptr)
 		return false;
-	return isFunction(*var);
+	return isFunctionType(*var);
 }
 
 bool isArray(const std::unique_ptr<TypeVariant>& var) 
@@ -613,8 +613,8 @@ bool operator==(const TypeVariant& a, const TypeVariant& b)
 		return std::get<const BaseType*>(a) == std::get<const BaseType*>(b);
 	else if (isStruct(a))
 		return std::get<const Struct*>(a) == std::get<const Struct*>(b);
-	else if (isFunction(a))
-		return std::get<Function>(a) == std::get<Function>(b);
+	else if (isFunctionType(a))
+		return std::get<FunctionType>(a) == std::get<FunctionType>(b);
 	else if (isPointer(a))
 		return std::get<Pointer>(a) == std::get<Pointer>(b);
 	else if (isArray(a))
@@ -635,8 +635,8 @@ bool isTypeCompatible(const TypeVariant& a, const TypeVariant& b)
 		return std::get<const BaseType*>(a) == std::get<const BaseType*>(b);
 	else if (isStruct(a))
 		return std::get<const Struct*>(a) == std::get<const Struct*>(b);
-	else if (isFunction(a))
-		return std::get<Function>(a) == std::get<Function>(b);
+	else if (isFunctionType(a))
+		return std::get<FunctionType>(a) == std::get<FunctionType>(b);
 	else if (isPointer(a))
 		return std::get<Pointer>(a) == std::get<Pointer>(b);
 	else if (isArray(a))

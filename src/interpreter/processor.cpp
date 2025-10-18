@@ -51,9 +51,9 @@ std::optional<int64_t> Processor::execute(Instruction instruction)
 		if(!std::holds_alternative<TypeVariant>(instruction.arguments()[0]))
 			throw std::runtime_error("Invalid call instruction argument");
 		TypeVariant func_type_variant = std::get<TypeVariant>(instruction.arguments()[0]);
-		if(isFunction(func_type_variant))
+		if(isFunctionType(func_type_variant))
 		{
-			Function func = std::get<Function>(func_type_variant);
+			FunctionType func = std::get<FunctionType>(func_type_variant);
 			if(!func.isValid())
 				throw std::runtime_error("Invalid function type in call instruction");
 		}
