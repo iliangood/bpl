@@ -1,4 +1,5 @@
 #include "interpreter/processor.h"
+#include "utils.h"
 
 StackIndex::StackIndex(size_t index, Processor* processor, bool isGlobal) : processor_(processor) 
 {
@@ -47,15 +48,25 @@ std::optional<int64_t> Processor::execute(Instruction instruction)
 	{
 		if(instruction.arguments().size() < 1)
 			throw std::runtime_error("Invalid call instruction");
+		if(!std::holds_alternative<TypeVariant>(instruction.arguments()[0]))
+			throw std::runtime_error("Invalid call instruction argument");
+		TypeVariant func_type_variant = std::get<TypeVariant>(instruction.arguments()[0]);
+		if(isFunction(func_type_variant))
+		{
+			Function func = std::get<Function>(func_type_variant);
+			if(!func.isValid())
+				throw std::runtime_error("Invalid function type in call instruction");
+		}
+		else
+			throw std::runtime_error("Invalid function type in call instruction");
 		for(size_t i = 1; i < instruction.arguments().size(); ++i)
 		{
-			if(std::holds_alternative<size_t>(instruction.arguments()[i]))
+			if(std::holds_alternative<StackIndex>(instruction.arguments()[i]))
 			{
-				size_t index = std::get<size_t>(instruction.arguments()[i]);
-				if(index >= stack_.size())
+				StackIndex index = std::get<StackIndex>(instruction.arguments()[i]);
+				if(index.index() >= stack_.size())
 					throw std::runtime_error("Invalid call argument index");
-				stack_.push(stack_.element(index));
-
+				stack_.push(stack_.element(index.index()));
 			}
 			else
 				throw std::runtime_error("Invalid call instruction argument");

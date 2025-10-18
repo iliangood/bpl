@@ -82,7 +82,7 @@ public:
 	size_t size() const { return sizeof(size_t); }
 	bool isValid() const { return true; }
 
-	bool operator==(const StackLink& other) const { return true; }
+	bool operator==(const StackLink&) const { return true; }
 	bool operator!=(const StackLink& other) const { return !(*this == other); }
 };
 
@@ -114,9 +114,10 @@ class Struct
 {
 	std::string name_;
 	std::vector<TypeVariant> types_;
+	std::vector<std::string> fieldNames_;
 	size_t totalSize_;
 public:
-	Struct(std::string name, const std::vector<TypeVariant>& types);
+	Struct(std::string name, const std::vector<TypeVariant>& types, const std::vector<std::string>& fieldNames);
 	Struct(Struct&&) = default;
 	Struct(const Struct&) = default;
 	Struct& operator=(Struct&&) = default;
@@ -130,7 +131,8 @@ public:
 	std::string name() const;
 	size_t size() const;
 
-	const std::vector<TypeVariant>& baseTypes() const;
+	const std::vector<TypeVariant>& types() const;
+	const std::vector<std::string>& fieldNames() const { return fieldNames_; }
 };
 
 class TypeVariant : public std::variant<const BaseType*, const Struct*, Function, Pointer, Array, StackLink>

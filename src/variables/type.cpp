@@ -49,7 +49,8 @@ bool BaseType::isValid() const
 
 
 
-Struct::Struct(std::string name, const std::vector<TypeVariant>& types) : name_(std::move(name)), types_(types), totalSize_(0)
+Struct::Struct(std::string name, const std::vector<TypeVariant>& types, const std::vector<std::string>& fieldNames) : name_(std::move(name)),
+types_(types), fieldNames_(fieldNames), totalSize_(0)
 {
 	for (size_t i = 0; i < types_.size(); ++i)
 	{
@@ -82,7 +83,7 @@ size_t Struct::size() const
 	return totalSize_; 
 }
 
-const std::vector<TypeVariant>& Struct::baseTypes() const 
+const std::vector<TypeVariant>& Struct::types() const 
 {
 	if(getValidationLevel() >= ValidationLevel::full)
 	{

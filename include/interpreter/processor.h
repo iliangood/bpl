@@ -63,6 +63,13 @@ public:
 	StackIndex(Element element, Processor* processor);
 	size_t index() const { return index_; }
 
+	StackIndex(const StackIndex& other) : index_(other.index_), processor_(other.processor_) {}
+	StackIndex(StackIndex&& other) : index_(other.index_), processor_(other.processor_)
+	{
+		other.index_ = 0;
+		other.processor_ = nullptr;
+	}
+
 	StackIndex& operator=(const StackIndex& other)
 	{
 		index_ = other.index_;
@@ -78,7 +85,7 @@ public:
 
 class Instruction;
 
-typedef std::variant<int64_t, std::string, Condition, TypeVariant, StackIndex, std::vector<Instruction>> Argument;
+typedef std::variant<int64_t, size_t, std::string, Condition, TypeVariant, StackIndex, std::vector<Instruction>> Argument;
 
 
 
@@ -87,10 +94,9 @@ class Instruction
 	OpCode opCode_;
 	std::vector<Argument> arguments_;
 public:
-	Instruction(OpCode opCode, std::vector<Argument> arguments_ = {});
-	OpCode opCode();
-	std::vector<Argument> arguments();
-	bool isValid();
+	Instruction(OpCode opCode, std::vector<Argument> arguments_ = {}) : opCode_(opCode), arguments_(arguments_) {}
+	OpCode opCode() const { return opCode_; }
+	const std::vector<Argument>& arguments() { return arguments_; }
 };
 
 
