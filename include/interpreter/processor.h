@@ -12,20 +12,33 @@
 enum class OpCode
 {
 	end_ = 0,
+
 	call_,
 	ret_,
+
 	scopeRet_,
 	init_,
 	mov_,
+
 	if_,
 	while_,
+
 	add_,
 	sub_,
 	mul_,
 	div_,
+	mod_,
+	and_,
+	or_,
+	not_,
+	shl_,
+	shr_,
+
 	stackRealloc_,
+
 	print_,
 	scan_,
+
 	cmp_,
 };
 
@@ -39,11 +52,33 @@ enum class Condition
 	gte_
 };
 
+class Processor;
 
+class StackIndex
+{
+	size_t index_;
+	Processor* processor_;
+public:
+	StackIndex(size_t index, Processor* processor, bool isGlobal = false);
+	StackIndex(Element element, Processor* processor);
+	size_t index() const { return index_; }
+
+	StackIndex& operator=(const StackIndex& other)
+	{
+		index_ = other.index_;
+		return *this;
+	}
+	StackIndex& operator=(StackIndex&& other)
+	{
+		index_ = other.index_;
+		other.index_ = 0;
+		return *this;
+	}
+};
 
 class Instruction;
 
-typedef std::variant<int64_t, std::string, Condition, size_t, TypeVariant, std::vector<Instruction>> Argument;
+typedef std::variant<int64_t, std::string, Condition, TypeVariant, StackIndex, std::vector<Instruction>> Argument;
 
 
 
@@ -62,6 +97,8 @@ public:
 
 class Processor
 {
+	friend class StackIndex;
+
 	std::vector<Instruction> programm_;
 	std::vector<BaseType> baseTypes_;
 	std::vector<Struct> structs_;

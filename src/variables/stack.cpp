@@ -23,12 +23,15 @@ uint8_t* Stack::push(const ElementInfo& element)
 		memset(data_ + top_, 0, element.size());
 	top_ += element.size();
 	++levels_.back();
+	elements_.back().setIndex(elements_.size() - 1);
 	return data_ + top_ - element.size();
 }
 
 uint8_t* Stack::push(const Element& element)
 {
-	uint8_t* data = push(static_cast<const ElementInfo&>(element));
+	uint8_t* dataPointer = push(static_cast<const ElementInfo&>(element));
+	memcpy(dataPointer, data_ + element.pos(), element.size());
+	return dataPointer;
 }
 
 void Stack::pop()

@@ -76,6 +76,16 @@ public:
 	size_t size() const { return sizeof(void*); }
 };
 
+class StackLink
+{
+public:
+	size_t size() const { return sizeof(size_t); }
+	bool isValid() const { return true; }
+
+	bool operator==(const StackLink& other) const { return true; }
+	bool operator!=(const StackLink& other) const { return !(*this == other); }
+};
+
 class Array
 {
 	std::unique_ptr<TypeVariant> elementType_;
@@ -123,13 +133,13 @@ public:
 	const std::vector<TypeVariant>& baseTypes() const;
 };
 
-class TypeVariant : public std::variant<const BaseType*, const Struct*, Function, Pointer, Array>
+class TypeVariant : public std::variant<const BaseType*, const Struct*, Function, Pointer, Array, StackLink>
 {
 public:
-    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::variant;
+    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array, StackLink>::variant;
 
-    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::index;
-    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array>::operator=;
+    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array, StackLink>::index;
+    using std::variant<const BaseType*, const Struct*, Function, Pointer, Array, StackLink>::operator=;
 };
 
 bool isValid(const TypeVariant& var);
@@ -140,6 +150,7 @@ bool isStruct(const TypeVariant& var);
 bool isPointer(const TypeVariant& var);
 bool isFunction(const TypeVariant& var);
 bool isArray(const TypeVariant& var);
+bool isStackLink(const TypeVariant& var);
 size_t sizeOfTypeVariant(const TypeVariant& var);
 
 bool isBaseType(const std::unique_ptr<TypeVariant>& var);
@@ -147,6 +158,7 @@ bool isStruct(const std::unique_ptr<TypeVariant>& var);
 bool isPointer(const std::unique_ptr<TypeVariant>& var);
 bool isFunction(const std::unique_ptr<TypeVariant>& var);
 bool isArray(const std::unique_ptr<TypeVariant>& var);
+bool isStackLink(const std::unique_ptr<TypeVariant>& var);
 size_t sizeOfTypeVariant(const std::unique_ptr<TypeVariant>& var);
 
 bool operator==(const TypeVariant& a, const TypeVariant& b);

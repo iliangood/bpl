@@ -1,5 +1,29 @@
 #include "interpreter/processor.h"
 
+StackIndex::StackIndex(size_t index, Processor* processor, bool isGlobal) : processor_(processor) 
+{
+	if(processor_ == nullptr)
+		throw std::invalid_argument("StackIndex::StackIndex(size_t, Processor*, bool) null Processor pointer");
+	if(isGlobal)
+	{
+		if(index >= processor_->stack_.elementCount())
+			throw std::out_of_range("StackIndex::StackIndex(size_t, Processor*, bool) global index out of range");
+		index_ = index;
+		return;
+	}
+	if(index >= processor_->stack_.elementCount() - processor_->FunctionStackStartPositions_.back())
+		throw std::out_of_range("StackIndex::StackIndex(size_t, Processor*, bool) local index out of range");
+	index_ = processor_->FunctionStackStartPositions_.back() + index;
+}
+
+StackIndex::StackIndex(Element element, Processor* processor) : processor_(processor) 
+{
+	if(processor_ == nullptr)
+		throw std::invalid_argument("StackIndex::StackIndex(Element, Processor*) null Processor pointer");
+	index_ = element.index();
+	if(index_ >= processor_->stack_.elementCount())
+		throw std::out_of_range("StackIndex::StackIndex(Element, Processor*) element index out of range");
+}
 
 std::optional<int64_t> Processor::execute(Instruction instruction)
 {
@@ -31,7 +55,7 @@ std::optional<int64_t> Processor::execute(Instruction instruction)
 				if(index >= stack_.size())
 					throw std::runtime_error("Invalid call argument index");
 				stack_.push(stack_.element(index));
-				
+
 			}
 			else
 				throw std::runtime_error("Invalid call instruction argument");
@@ -40,7 +64,7 @@ std::optional<int64_t> Processor::execute(Instruction instruction)
 	return std::nullopt;
 }	
 
-void Processor::notifyStackReallocation(uint8_t* new_data)
+void Processor::notifyStackReallocation(uint8_t* new_data) //TODO:
 {
 	execute(Instruction(OpCode::stackRealloc_, {}));
 }

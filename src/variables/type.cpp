@@ -500,6 +500,10 @@ bool isValid(const TypeVariant& var)
 	{
 		return std::get<Array>(var).isValid();
 	}
+	else if(isStackLink(var))
+	{
+		return std::get<StackLink>(var).isValid();
+	}
 	return false;
 }
 
@@ -528,6 +532,11 @@ bool isArray(const TypeVariant& var)
 	return std::holds_alternative<Array>(var);
 }
 
+bool isStackLink(const TypeVariant& var) 
+{
+	return std::holds_alternative<StackLink>(var);
+}
+
 size_t sizeOfTypeVariant(const TypeVariant& var)
 {
 	if (isBaseType(var))
@@ -540,6 +549,8 @@ size_t sizeOfTypeVariant(const TypeVariant& var)
 		return std::get<Pointer>(var).size();
 	else if (isArray(var))
 		return std::get<Array>(var).size();
+	else if (isStackLink(var))
+		return std::get<StackLink>(var).size();
 	return 0;
 }
 
@@ -576,6 +587,13 @@ bool isArray(const std::unique_ptr<TypeVariant>& var)
 	if(var == nullptr)
 		return false;
 	return isArray(*var);
+}
+
+bool isStackLink(const std::unique_ptr<TypeVariant>& var) 
+{
+	if(var == nullptr)
+		return false;
+	return isStackLink(*var);
 }
 
 size_t sizeOfTypeVariant(const std::unique_ptr<TypeVariant>& var)

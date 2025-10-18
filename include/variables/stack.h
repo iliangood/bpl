@@ -26,10 +26,14 @@ public:
 
 class Element : public ElementInfo
 {
+	friend class Stack;
 	size_t pos_;
+	size_t index_;
+	void setIndex(size_t index) { index_ = index; }
 public:
 	Element(ElementInfo info, size_t pos) : ElementInfo(info), pos_(pos) {}
-	size_t pos() { return pos_; }
+	size_t pos() const { return pos_; }
+	size_t index() const { return index_; }
 };
 
 class Stack
