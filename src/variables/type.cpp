@@ -126,56 +126,56 @@ bool Struct::isValid() const
 
 
 
-Pointer::Pointer(TypeVariant pointerType) : pointerType_(new TypeVariant)
+PointerType::PointerType(TypeVariant pointerType) : pointerType_(new TypeVariant)
 {
 	*pointerType_ = pointerType;
 	if(getValidationLevel() >= ValidationLevel::basic)
 	{
 		if(!isValid())
-			throw std::invalid_argument("Pointer::Pointer(TypeVariant) Invalid Pointer parameters");
+			throw std::invalid_argument("PointerType::PointerType(TypeVariant) Invalid PointerType parameters");
 	}
 }
 
-TypeVariant Pointer::pointerType() const 
+TypeVariant PointerType::pointerType() const 
 {
 	if(pointerType_ == nullptr)
-		throw std::runtime_error("Pointer::pointerType() called on null pointerType_");
+		throw std::runtime_error("PointerType::pointerType() called on null pointerType_");
 	if(getValidationLevel() >= ValidationLevel::full)
 	{
 		if(!isValid())
-			throw std::runtime_error("Pointer::pointerType() called on invalid Pointer");
+			throw std::runtime_error("PointerType::pointerType() called on invalid PointerType");
 	}
 	return *pointerType_; 
 }
 
-Pointer::Pointer(const Pointer& other) : pointerType_(new TypeVariant()) 
+PointerType::PointerType(const PointerType& other) : pointerType_(new TypeVariant()) 
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Invalid Pointer::Pointer(const Pointer&) parameters");
+			throw std::invalid_argument("Invalid PointerType::PointerType(const PointerType&) parameters");
 	}
 	*pointerType_ = other.pointerType();
 }
 
-Pointer::Pointer(Pointer&& other) 
+PointerType::PointerType(PointerType&& other) 
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Invalid Pointer::Pointer(Pointer&&) parameters");
+			throw std::invalid_argument("Invalid PointerType::PointerType(PointerType&&) parameters");
 	}
 	pointerType_ = std::move(other.pointerType_);
 }
 
-Pointer& Pointer::operator=(const Pointer& other)
+PointerType& PointerType::operator=(const PointerType& other)
 {
 	if (this == &other)
 		return *this;
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Invalid Pointer::operator=(const Pointer&) parameters");
+			throw std::invalid_argument("Invalid PointerType::operator=(const PointerType&) parameters");
 	}
 	if(pointerType_ == nullptr)
 		pointerType_ = std::make_unique<TypeVariant>();
@@ -184,20 +184,20 @@ Pointer& Pointer::operator=(const Pointer& other)
 	return *this;
 }
 
-Pointer& Pointer::operator=(Pointer&& other)
+PointerType& PointerType::operator=(PointerType&& other)
 {
 	if (this == &other)
 		return *this;
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Invalid Pointer::operator=(Pointer&&) parameters");
+			throw std::invalid_argument("Invalid PointerType::operator=(PointerType&&) parameters");
 	}
 	pointerType_ = std::move(other.pointerType_);
 	return *this;
 }
 
-bool Pointer::isValid() const
+bool PointerType::isValid() const
 {
 	if(pointerType_ == nullptr)
 		return false;
@@ -206,17 +206,17 @@ bool Pointer::isValid() const
 	return ::isValid(*pointerType_);
 }
 
-bool Pointer::operator==(const Pointer& other) const
+bool PointerType::operator==(const PointerType& other) const
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Pointer::operator==(const Pointer&) invalid other Pointer");
+			throw std::invalid_argument("PointerType::operator==(const PointerType&) invalid other PointerType");
 	}
 	if(getValidationLevel() >= ValidationLevel::full)
 	{
 		if(!isValid())
-			throw std::runtime_error("Pointer::operator==(const Pointer&) called on invalid Pointer");
+			throw std::runtime_error("PointerType::operator==(const PointerType&) called on invalid PointerType");
 	}
 	return pointerType() == other.pointerType();
 }
@@ -491,8 +491,8 @@ bool isValid(const TypeVariant& var)
 				return false;
 			return std::get<const Struct*>(var)->isValid();
 		}
-	else if(isPointer(var))
-		return std::get<Pointer>(var).isValid();
+	else if(isPointerType(var))
+		return std::get<PointerType>(var).isValid();
 	else if(isFunctionType(var))
 	{
 		return std::get<FunctionType>(var).isValid();
@@ -518,9 +518,9 @@ bool isStruct(const TypeVariant& var)
 	return std::holds_alternative<const Struct*>(var);
 }
 
-bool isPointer(const TypeVariant& var) 
+bool isPointerType(const TypeVariant& var) 
 {
-	return std::holds_alternative<Pointer>(var);
+	return std::holds_alternative<PointerType>(var);
 }
 
 bool isFunctionType(const TypeVariant& var) 
@@ -546,8 +546,8 @@ size_t sizeOfTypeVariant(const TypeVariant& var)
 		return std::get<const Struct*>(var)->size();
 	else if (isFunctionType(var))
 		return std::get<FunctionType>(var).size();
-	else if (isPointer(var))
-		return std::get<Pointer>(var).size();
+	else if (isPointerType(var))
+		return std::get<PointerType>(var).size();
 	else if (isArray(var))
 		return std::get<Array>(var).size();
 	else if (isStackLink(var))
@@ -569,11 +569,11 @@ bool isStruct(const std::unique_ptr<TypeVariant>& var)
 	return isStruct(*var);
 }
 
-bool isPointer(const std::unique_ptr<TypeVariant>& var) 
+bool isPointerType(const std::unique_ptr<TypeVariant>& var) 
 {
 	if(var == nullptr)
 		return false;
-	return isPointer(*var);
+	return isPointerType(*var);
 }
 
 bool isFunctionType(const std::unique_ptr<TypeVariant>& var) 
@@ -615,8 +615,8 @@ bool operator==(const TypeVariant& a, const TypeVariant& b)
 		return std::get<const Struct*>(a) == std::get<const Struct*>(b);
 	else if (isFunctionType(a))
 		return std::get<FunctionType>(a) == std::get<FunctionType>(b);
-	else if (isPointer(a))
-		return std::get<Pointer>(a) == std::get<Pointer>(b);
+	else if (isPointerType(a))
+		return std::get<PointerType>(a) == std::get<PointerType>(b);
 	else if (isArray(a))
 		return std::get<Array>(a) == std::get<Array>(b);
 	return false;
@@ -637,8 +637,8 @@ bool isTypeCompatible(const TypeVariant& a, const TypeVariant& b)
 		return std::get<const Struct*>(a) == std::get<const Struct*>(b);
 	else if (isFunctionType(a))
 		return std::get<FunctionType>(a) == std::get<FunctionType>(b);
-	else if (isPointer(a))
-		return std::get<Pointer>(a) == std::get<Pointer>(b);
+	else if (isPointerType(a))
+		return std::get<PointerType>(a) == std::get<PointerType>(b);
 	else if (isArray(a))
 		return std::get<Array>(a).isTypeCompatible(std::get<Array>(b));
 	return false;
