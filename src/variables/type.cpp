@@ -49,7 +49,7 @@ bool BaseType::isValid() const
 
 
 
-Struct::Struct(std::string name, const std::vector<TypeVariant>& types, const std::vector<std::string>& fieldNames) : name_(std::move(name)),
+StructType::StructType(std::string name, const std::vector<TypeVariant>& types, const std::vector<std::string>& fieldNames) : name_(std::move(name)),
 types_(types), fieldNames_(fieldNames), totalSize_(0)
 {
 	for (size_t i = 0; i < types_.size(); ++i)
@@ -59,56 +59,56 @@ types_(types), fieldNames_(fieldNames), totalSize_(0)
 	if(getValidationLevel() >= ValidationLevel::basic)
 	{
 		if(!isValid())
-			throw std::invalid_argument("Struct::Struct(std::string, const std::vector<TypeVariant>&) Invalid parameters");
+			throw std::invalid_argument("StructType::StructType(std::string, const std::vector<TypeVariant>&) Invalid parameters");
 	}
 }
 
-std::string Struct::name() const 
+std::string StructType::name() const 
 {
 	if(getValidationLevel() >= ValidationLevel::full)
 	{
 		if(!isValid())
-			throw std::runtime_error("Struct::name() called on invalid Struct");
+			throw std::runtime_error("StructType::name() called on invalid StructType");
 	}
 	return name_; 
 }
 
-size_t Struct::size() const 
+size_t StructType::size() const 
 { 
 	if(getValidationLevel() >= ValidationLevel::full)
 	{
 		if(!isValid())
-			throw std::runtime_error("Struct::size() called on invalid Struct");
+			throw std::runtime_error("StructType::size() called on invalid StructType");
 	}
 	return totalSize_; 
 }
 
-const std::vector<TypeVariant>& Struct::types() const 
+const std::vector<TypeVariant>& StructType::types() const 
 {
 	if(getValidationLevel() >= ValidationLevel::full)
 	{
 		if(!isValid())
-			throw std::runtime_error("Struct::baseTypes() called on invalid Struct");
+			throw std::runtime_error("StructType::baseTypes() called on invalid StructType");
 	}
 	return types_; 
 }
 
-bool Struct::operator==(const Struct& other) const
+bool StructType::operator==(const StructType& other) const
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Struct::operator==(const Struct&) invalid other Struct");
+			throw std::invalid_argument("StructType::operator==(const StructType&) invalid other StructType");
 	}
 	if(getValidationLevel() >= ValidationLevel::full)
 	{
 		if(!isValid())
-			throw std::runtime_error("Struct::operator==(const Struct&) called on invalid Struct");
+			throw std::runtime_error("StructType::operator==(const StructType&) called on invalid StructType");
 	}
 	return types_ == other.types_;
 }
 
-bool Struct::isValid() const
+bool StructType::isValid() const
 {
 	if(name_.empty())
 		return false;
@@ -223,83 +223,83 @@ bool PointerType::operator==(const PointerType& other) const
 
 
 
-Array::Array(TypeVariant elementType, size_t count) : elementType_(new TypeVariant), count_(count) 
+ArrayType::ArrayType(TypeVariant elementType, size_t count) : elementType_(new TypeVariant), count_(count) 
 {
 	*elementType_ = elementType;
 	if(getValidationLevel() >= ValidationLevel::basic)
 	{
 		if(!isValid())
-			throw std::invalid_argument("Array::Array(TypeVariant, size_t) Invalid Array parameters");
+			throw std::invalid_argument("ArrayType::ArrayType(TypeVariant, size_t) Invalid ArrayType parameters");
 	}
 }
 
 
-TypeVariant Array::elementType() const 
+TypeVariant ArrayType::elementType() const 
 {
 	if(elementType_ == nullptr)
-		throw std::runtime_error("Array::elementType() called on null elementType_");
+		throw std::runtime_error("ArrayType::elementType() called on null elementType_");
 	if(getValidationLevel() >= ValidationLevel::full)
 	{
 		if(!isValid())
-			throw std::runtime_error("Array::elementType() called on invalid Array");
+			throw std::runtime_error("ArrayType::elementType() called on invalid ArrayType");
 	}
 	return *elementType_;
 }
 
-size_t Array::count() const 
+size_t ArrayType::count() const 
 {
 	if(getValidationLevel() >= ValidationLevel::full)
 	{
 		if(!isValid())
-			throw std::runtime_error("Array::count() called on invalid Array");
+			throw std::runtime_error("ArrayType::count() called on invalid ArrayType");
 	}
 	return count_; 
 }
 
-size_t Array::size() const 
+size_t ArrayType::size() const 
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!isValid())
-			throw std::runtime_error("Array::size() called on invalid Array");
+			throw std::runtime_error("ArrayType::size() called on invalid ArrayType");
 	}
 	 return sizeOfTypeVariant(elementType()) * count_;
 }
 
-Array::Array(Array&& other) : count_(other.count_) 
+ArrayType::ArrayType(ArrayType&& other) : count_(other.count_) 
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Invalid Array::Array(Array&&) parameters");
+			throw std::invalid_argument("Invalid ArrayType::ArrayType(ArrayType&&) parameters");
 	}
 	if(getValidationLevel() >= ValidationLevel::full)
 	{
 		if(!isValid())
-			throw std::runtime_error("Array::Array(Array&&) called on invalid Array");
+			throw std::runtime_error("ArrayType::ArrayType(ArrayType&&) called on invalid ArrayType");
 	}
 	elementType_ = std::move(other.elementType_);
 	other.count_ = 0;
 }
 
-Array::Array(const Array& other) : elementType_(new TypeVariant), count_(other.count_) 
+ArrayType::ArrayType(const ArrayType& other) : elementType_(new TypeVariant), count_(other.count_) 
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Invalid Array::Array(const Array&) parameters");
+			throw std::invalid_argument("Invalid ArrayType::ArrayType(const ArrayType&) parameters");
 	}
 	*elementType_ = other.elementType();
 }
 
-Array& Array::operator=(Array&& other)
+ArrayType& ArrayType::operator=(ArrayType&& other)
 {
 	if (this == &other)
 		return *this;
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Invalid Array::operator=(Array&&) parameters");
+			throw std::invalid_argument("Invalid ArrayType::operator=(ArrayType&&) parameters");
 	}
 	elementType_ = std::move(other.elementType_);
 	count_ = other.count_;
@@ -308,14 +308,14 @@ Array& Array::operator=(Array&& other)
 	return *this;
 }
 
-Array& Array::operator=(const Array& other)
+ArrayType& ArrayType::operator=(const ArrayType& other)
 {
 	if (this == &other)
 		return *this;
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!other.isValid())
-			throw std::invalid_argument("Invalid Array::operator=(const Array&) parameters");
+			throw std::invalid_argument("Invalid ArrayType::operator=(const ArrayType&) parameters");
 	}
 	if(elementType_ == nullptr)
 		elementType_ = std::make_unique<TypeVariant>();
@@ -324,7 +324,7 @@ Array& Array::operator=(const Array& other)
 	return *this;
 }
 
-bool Array::isValid() const
+bool ArrayType::isValid() const
 {
 	if(elementType_ == nullptr)
 		return false;
@@ -335,22 +335,22 @@ bool Array::isValid() const
 	return ::isValid(elementType_);
 }
 
-bool Array::operator==(const Array& other) const
+bool ArrayType::operator==(const ArrayType& other) const
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!isValid() || !other.isValid())
-			throw std::runtime_error("Array::operator== called on invalid Array");
+			throw std::runtime_error("ArrayType::operator== called on invalid ArrayType");
 	}
 	return elementType() == other.elementType() && count_ == other.count_;
 }
 
-bool Array::isTypeCompatible(const Array& other) const
+bool ArrayType::isTypeCompatible(const ArrayType& other) const
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!isValid() || !other.isValid())
-			throw std::runtime_error("Array::isTypeCompatible called on invalid Array");
+			throw std::runtime_error("ArrayType::isTypeCompatible called on invalid ArrayType");
 	}
 	return elementType() == other.elementType();
 }
@@ -485,11 +485,11 @@ bool isValid(const TypeVariant& var)
 			return false;
 		return std::get<const BaseType*>(var)->isValid();
 	}
-	else if(isStruct(var))
+	else if(isStructType(var))
 		{
-			if(std::get<const Struct*>(var) == nullptr)
+			if(std::get<const StructType*>(var) == nullptr)
 				return false;
-			return std::get<const Struct*>(var)->isValid();
+			return std::get<const StructType*>(var)->isValid();
 		}
 	else if(isPointerType(var))
 		return std::get<PointerType>(var).isValid();
@@ -497,13 +497,13 @@ bool isValid(const TypeVariant& var)
 	{
 		return std::get<FunctionType>(var).isValid();
 	}
-	else if(isArray(var))
+	else if(isArrayType(var))
 	{
-		return std::get<Array>(var).isValid();
+		return std::get<ArrayType>(var).isValid();
 	}
-	else if(isStackLink(var))
+	else if(isStackLinkType(var))
 	{
-		return std::get<StackLink>(var).isValid();
+		return std::get<StackLinkType>(var).isValid();
 	}
 	return false;
 }
@@ -513,9 +513,9 @@ bool isBaseType(const TypeVariant& var)
 	return std::holds_alternative<const BaseType*>(var);
 }
 
-bool isStruct(const TypeVariant& var) 
+bool isStructType(const TypeVariant& var) 
 {
-	return std::holds_alternative<const Struct*>(var);
+	return std::holds_alternative<const StructType*>(var);
 }
 
 bool isPointerType(const TypeVariant& var) 
@@ -528,30 +528,30 @@ bool isFunctionType(const TypeVariant& var)
 	return std::holds_alternative<FunctionType>(var);
 }
 
-bool isArray(const TypeVariant& var) 
+bool isArrayType(const TypeVariant& var) 
 {
-	return std::holds_alternative<Array>(var);
+	return std::holds_alternative<ArrayType>(var);
 }
 
-bool isStackLink(const TypeVariant& var) 
+bool isStackLinkType(const TypeVariant& var) 
 {
-	return std::holds_alternative<StackLink>(var);
+	return std::holds_alternative<StackLinkType>(var);
 }
 
 size_t sizeOfTypeVariant(const TypeVariant& var)
 {
 	if (isBaseType(var))
 		return std::get<const BaseType*>(var)->size();
-	else if (isStruct(var))
-		return std::get<const Struct*>(var)->size();
+	else if (isStructType(var))
+		return std::get<const StructType*>(var)->size();
 	else if (isFunctionType(var))
 		return std::get<FunctionType>(var).size();
 	else if (isPointerType(var))
 		return std::get<PointerType>(var).size();
-	else if (isArray(var))
-		return std::get<Array>(var).size();
-	else if (isStackLink(var))
-		return std::get<StackLink>(var).size();
+	else if (isArrayType(var))
+		return std::get<ArrayType>(var).size();
+	else if (isStackLinkType(var))
+		return std::get<StackLinkType>(var).size();
 	return 0;
 }
 
@@ -562,11 +562,11 @@ bool isBaseType(const std::unique_ptr<TypeVariant>& var)
 	return isBaseType(*var);
 }
 
-bool isStruct(const std::unique_ptr<TypeVariant>& var) 
+bool isStructType(const std::unique_ptr<TypeVariant>& var) 
 {
 	if(var == nullptr)
 		return false;
-	return isStruct(*var);
+	return isStructType(*var);
 }
 
 bool isPointerType(const std::unique_ptr<TypeVariant>& var) 
@@ -583,18 +583,18 @@ bool isFunctionType(const std::unique_ptr<TypeVariant>& var)
 	return isFunctionType(*var);
 }
 
-bool isArray(const std::unique_ptr<TypeVariant>& var) 
+bool isArrayType(const std::unique_ptr<TypeVariant>& var) 
 {
 	if(var == nullptr)
 		return false;
-	return isArray(*var);
+	return isArrayType(*var);
 }
 
-bool isStackLink(const std::unique_ptr<TypeVariant>& var) 
+bool isStackLinkType(const std::unique_ptr<TypeVariant>& var) 
 {
 	if(var == nullptr)
 		return false;
-	return isStackLink(*var);
+	return isStackLinkType(*var);
 }
 
 size_t sizeOfTypeVariant(const std::unique_ptr<TypeVariant>& var)
@@ -611,14 +611,14 @@ bool operator==(const TypeVariant& a, const TypeVariant& b)
 		return false;
 	if (isBaseType(a))
 		return std::get<const BaseType*>(a) == std::get<const BaseType*>(b);
-	else if (isStruct(a))
-		return std::get<const Struct*>(a) == std::get<const Struct*>(b);
+	else if (isStructType(a))
+		return std::get<const StructType*>(a) == std::get<const StructType*>(b);
 	else if (isFunctionType(a))
 		return std::get<FunctionType>(a) == std::get<FunctionType>(b);
 	else if (isPointerType(a))
 		return std::get<PointerType>(a) == std::get<PointerType>(b);
-	else if (isArray(a))
-		return std::get<Array>(a) == std::get<Array>(b);
+	else if (isArrayType(a))
+		return std::get<ArrayType>(a) == std::get<ArrayType>(b);
 	return false;
 }
 
@@ -633,14 +633,14 @@ bool isTypeCompatible(const TypeVariant& a, const TypeVariant& b)
 		return false;
 	if (isBaseType(a))
 		return std::get<const BaseType*>(a) == std::get<const BaseType*>(b);
-	else if (isStruct(a))
-		return std::get<const Struct*>(a) == std::get<const Struct*>(b);
+	else if (isStructType(a))
+		return std::get<const StructType*>(a) == std::get<const StructType*>(b);
 	else if (isFunctionType(a))
 		return std::get<FunctionType>(a) == std::get<FunctionType>(b);
 	else if (isPointerType(a))
 		return std::get<PointerType>(a) == std::get<PointerType>(b);
-	else if (isArray(a))
-		return std::get<Array>(a).isTypeCompatible(std::get<Array>(b));
+	else if (isArrayType(a))
+		return std::get<ArrayType>(a).isTypeCompatible(std::get<ArrayType>(b));
 	return false;
 }
 
