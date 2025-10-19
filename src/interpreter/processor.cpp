@@ -1,7 +1,7 @@
 #include "interpreter/processor.h"
 #include "utils.h"
 
-StackIndex::StackIndex(size_t index, Processor* processor, bool isGlobal) : processor_(processor) 
+StackIndex::StackIndex(size_t index, Processor* processor, const std::optional<std::vector<size_t>>& subIndexes, bool isGlobal) : processor_(processor) 
 {
 	if(processor_ == nullptr)
 		throw std::invalid_argument("StackIndex::StackIndex(size_t, Processor*, bool) null Processor pointer");
@@ -15,15 +15,17 @@ StackIndex::StackIndex(size_t index, Processor* processor, bool isGlobal) : proc
 	if(index >= processor_->stack_.elementCount() - processor_->functionStackStartPositions_.back())
 		throw std::out_of_range("StackIndex::StackIndex(size_t, Processor*, bool) local index out of range");
 	index_ = processor_->functionStackStartPositions_.back() + index;
+	subIndexes_ = subIndexes;
 }
 
-StackIndex::StackIndex(Element element, Processor* processor) : processor_(processor) 
+StackIndex::StackIndex(Element element, Processor* processor, const std::optional<std::vector<size_t>>& subIndexes) : processor_(processor) 
 {
 	if(processor_ == nullptr)
 		throw std::invalid_argument("StackIndex::StackIndex(Element, Processor*) null Processor pointer");
 	index_ = element.index();
 	if(index_ >= processor_->stack_.elementCount())
 		throw std::out_of_range("StackIndex::StackIndex(Element, Processor*) element index out of range");
+	subIndexes_ = subIndexes;
 }
 
 bool StackIndex::isValid() const
@@ -91,7 +93,7 @@ std::optional<int64_t> Processor::end_(Instruction&& instruction)
 	throw std::runtime_error("Invalid end instruction");
 }
 
-std::optional<int64_t> Processor::call_(Instruction&& instruction)
+std::optional<int64_t> Processor::call_(Instruction&& instruction) //TODO: Переделать для обновленного StackIndex
 {
 	if(instruction.arguments().size() < 1)
 		throw std::runtime_error("Invalid call instruction");
@@ -195,7 +197,7 @@ std::optional<int64_t> Processor::call_(Instruction&& instruction)
 	}
 	functionExit();
 }
-std::optional<int64_t> Processor::execute(Instruction instruction)
+std::optional<int64_t> Processor::execute(Instruction instruction) //TODO: Переделать для обновленного StackIndex
 {
 	if(finished())
 	{

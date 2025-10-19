@@ -85,11 +85,14 @@ class Processor;
 class StackIndex
 {
 	size_t index_;
+	std::optional<std::vector<size_t>> subIndexes_;
 	Processor* processor_;
 public:
-	StackIndex(size_t index, Processor* processor, bool isGlobal = false);
-	StackIndex(Element element, Processor* processor);
+	StackIndex(size_t index, Processor* processor, const std::optional<std::vector<size_t>>& subIndexes = std::nullopt, bool isGlobal = false);
+	StackIndex(Element element, Processor* processor, const std::optional<std::vector<size_t>>& subIndexes = std::nullopt);
 	size_t index() const { return index_; }
+	std::optional<std::vector<size_t>> subIndexes() const { return subIndexes_; }
+	bool hasSubIndexes() const { return subIndexes_.has_value(); }
 
 	StackIndex(const StackIndex& other) : index_(other.index_), processor_(other.processor_) {}
 	StackIndex(StackIndex&& other) : index_(other.index_), processor_(other.processor_)
