@@ -12,9 +12,9 @@ StackIndex::StackIndex(size_t index, Processor* processor, bool isGlobal) : proc
 		index_ = index;
 		return;
 	}
-	if(index >= processor_->stack_.elementCount() - processor_->FunctionStackStartPositions_.back())
+	if(index >= processor_->stack_.elementCount() - processor_->functionStackStartPositions_.back())
 		throw std::out_of_range("StackIndex::StackIndex(size_t, Processor*, bool) local index out of range");
-	index_ = processor_->FunctionStackStartPositions_.back() + index;
+	index_ = processor_->functionStackStartPositions_.back() + index;
 }
 
 StackIndex::StackIndex(Element element, Processor* processor) : processor_(processor) 
@@ -52,6 +52,30 @@ Function::Function(StackIndex index, Processor* processor) : processor_(processo
 
 
 
+Processor::Processor(const std::vector<Instruction>& program, size_t stackSize) : programm_(program), stack_(stackSize), finished_(false)
+{
+	baseTypes_.push_back(BaseType("int64", sizeof(int64_t)));
+	baseTypes_.push_back(BaseType("uint64", sizeof(uint64_t)));
+	baseTypes_.push_back(BaseType("char", sizeof(char)));
+	baseTypes_.push_back(BaseType("size_t", sizeof(size_t)));
+	baseTypes_.push_back(BaseType("double", sizeof(double)));
+	baseTypes_.push_back(BaseType("void", 0));
+}
+
+void Processor::functionEntry()
+{
+	functionStackStartPositions_.push_back(stack_.elementCount());
+	stack_.newLevel();
+}
+
+void Processor::functionExit()
+{
+	if(functionStackStartPositions_.empty())
+		throw std::runtime_error("Processor::functionExit() no function to exit from");
+	functionStackStartPositions_.pop_back();
+	stack_.popLevel();
+}
+
 std::optional<int64_t> Processor::execute(Instruction instruction)
 {
 	if(finished())
@@ -86,6 +110,8 @@ std::optional<int64_t> Processor::execute(Instruction instruction)
 		}
 		else
 			throw std::runtime_error("Invalid function type in call instruction");
+		stack_.newLevel();
+		functionStackStartPositions_.push_back(stack_.elementCount());
 		for(size_t i = 1; i < instruction.arguments().size(); ++i)
 		{
 			if(std::holds_alternative<StackIndex>(instruction.arguments()[i]))

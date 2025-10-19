@@ -357,10 +357,9 @@ bool ArrayType::isTypeCompatible(const ArrayType& other) const
 
 
 
-FunctionType::FunctionType(TypeVariant returnType, const std::vector<TypeVariant>& argumentsTypes) :
-	returnType_(new TypeVariant), argumentsTypes_(argumentsTypes) 
+FunctionType::FunctionType(const std::vector<TypeVariant>& argumentsTypes, TypeVariant returnType) :
+	argumentsTypes_(argumentsTypes), returnType_(std::make_unique<TypeVariant>(returnType))
 {
-	*returnType_ = returnType;
 	if(getValidationLevel() >= ValidationLevel::basic)
 	{
 		if(!isValid())
@@ -386,8 +385,7 @@ FunctionType::FunctionType(const FunctionType& other)
 		if(!other.isValid())
 			throw std::invalid_argument("Invalid FunctionType::FunctionType(const FunctionType&) parameters");
 	}
-	returnType_ = std::make_unique<TypeVariant>();
-	*returnType_ = other.returnType();
+	returnType_ = std::make_unique<TypeVariant>(*other.returnType_);
 	argumentsTypes_ = other.argumentsTypes_;
 }
 
@@ -402,10 +400,7 @@ FunctionType& FunctionType::operator=(const FunctionType& other)
 			throw std::invalid_argument("Invalid FunctionType::operator=(const FunctionType&) parameters");
 	}
 
-	if(returnType_ == nullptr)
-		returnType_ = std::make_unique<TypeVariant>();
-
-	*returnType_ = other.returnType();
+	returnType_ =  std::make_unique<TypeVariant>(*other.returnType_);
 	argumentsTypes_ = other.argumentsTypes_;
 	return *this;
 }
@@ -430,10 +425,11 @@ bool FunctionType::isValid() const
 {
 	if(returnType_ == nullptr)
 		return false;
-	if(getValidationLevel() < ValidationLevel::basic)
-		return true;
 	if(!::isValid(*returnType_))
 		return false;
+	if(getValidationLevel() < ValidationLevel::basic)
+		return true;
+	
 	for(size_t i = 0; i < argumentsTypes_.size(); ++i)
 	{
 		if(!::isValid(argumentsTypes_[i]))
@@ -444,14 +440,12 @@ bool FunctionType::isValid() const
 
 TypeVariant FunctionType::returnType() const 
 {
-	if(returnType_ == nullptr)
-		throw std::runtime_error("FunctionType::returnType() called on invalid FunctionType");
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!isValid())
 			throw std::runtime_error("FunctionType::returnType() called on invalid FunctionType");
 	}
-	 return *returnType_; 
+	return *returnType_; 
 }
 
 const std::vector<TypeVariant>& FunctionType::argumentsTypes() const 

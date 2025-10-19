@@ -138,13 +138,15 @@ class Processor
 	std::vector<BaseType> baseTypes_;
 	std::vector<StructType> structs_;
 	Stack stack_;
-	std::vector<size_t> FunctionStackStartPositions_;
+	std::vector<size_t> functionStackStartPositions_;
 	Stack FunctionReturnValues_;
 	bool finished_;
 
+	void functionEntry();
+	void functionExit();
 	std::optional<int64_t> execute(Instruction instruction);
 	public:
-	Processor(std::vector<Instruction> program);
+	Processor(const std::vector<Instruction>& program, size_t stackSize = 1 << 20);
 	std::optional<int64_t> run();
 	void notifyStackReallocation(uint8_t* new_data);
 

@@ -35,11 +35,11 @@ class TypeVariant;
 
 class FunctionType
 {
-	std::unique_ptr<TypeVariant> returnType_;
 	std::vector<TypeVariant> argumentsTypes_;
+	std::unique_ptr<TypeVariant> returnType_;
 public:
 	FunctionType() : returnType_(nullptr) {}
-	FunctionType(TypeVariant returnType, const std::vector<TypeVariant>& argumentsTypes);
+	FunctionType(const std::vector<TypeVariant>& argumentsTypes, TypeVariant returnType);
 	
 	bool isValid() const;
 
@@ -52,6 +52,7 @@ public:
 	bool operator!=(const FunctionType& other) const { return !(*this == other); }
 
 	size_t size() const;
+	bool hasReturnType() const { return returnType_ != nullptr; }
 	TypeVariant returnType() const;
 	const std::vector<TypeVariant>& argumentsTypes() const;
 };
