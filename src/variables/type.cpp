@@ -455,7 +455,17 @@ const std::vector<TypeVariant>& FunctionType::argumentsTypes() const
 		if(!isValid())
 			throw std::runtime_error("std::vector<TypeVariant>& FunctionType::argumentsTypes() called on invalid FunctionType");
 	}
-	 return argumentsTypes_; 
+	return argumentsTypes_; 
+}
+
+const std::vector<std::string>& FunctionType::argumentNames() const 
+{
+	if(getValidationLevel() >= ValidationLevel::full)
+	{
+		if(!isValid())
+			throw std::runtime_error("std::vector<std::string>& FunctionType::argumentNames() called on invalid FunctionType");
+	}
+	return argumentNames_; 
 }
 
 size_t FunctionType::size() const 

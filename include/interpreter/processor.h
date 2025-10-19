@@ -53,6 +53,33 @@ enum class Condition
 };
 
 
+enum class BaseTypeId
+{
+	int64_ = 0,
+	uint64_,
+	char_,
+	size_,
+	double_,
+	void_,
+	countOfBaseTypes
+};
+
+class BaseTypeVector : public std::vector<BaseType>
+{
+public:
+	using std::vector<BaseType>::vector;
+	using std::vector<BaseType>::operator[];
+	using std::vector<BaseType>::at;
+	using std::vector<BaseType>::size;
+	using std::vector<BaseType>::resize;
+	using std::vector<BaseType>::begin;
+	using std::vector<BaseType>::end;
+	using std::vector<BaseType>::data;
+	BaseType& operator[](BaseTypeId id) { return std::vector<BaseType>::operator[](static_cast<size_t>(id)); }
+	const BaseType& operator[](BaseTypeId id) const { return std::vector<BaseType>::operator[](static_cast<size_t>(id)); }
+	void resize(BaseTypeId count) { std::vector<BaseType>::resize(static_cast<size_t>(count)); }
+};
+
 class Processor;
 
 class StackIndex
@@ -110,10 +137,10 @@ public:
 
 
 	FunctionType type() const { return type_; }
-	const std::vector<Instruction>& body() const { return body_; }
+	std::vector<Instruction>& body() { return body_; }
 };
 
-typedef std::variant<int64_t, size_t, std::string, Condition, TypeVariant, Function, StackIndex, std::vector<Instruction>> Argument;
+typedef std::variant<int64_t, size_t, std::string, void*, Condition, TypeVariant, Function, StackIndex, std::vector<Instruction>> Argument;
 
 
 
@@ -123,8 +150,23 @@ class Instruction
 	std::vector<Argument> arguments_;
 public:
 	Instruction(OpCode opCode, std::vector<Argument> arguments_ = {}) : opCode_(opCode), arguments_(arguments_) {}
+	Instruction(const Instruction& other) : opCode_(other.opCode_), arguments_(other.arguments_) {}
+	Instruction(Instruction&& other) : opCode_(other.opCode_), arguments_(std::move(other.arguments_)) {}
+	Instruction& operator=(const Instruction& other)
+	{
+		opCode_ = other.opCode_;
+		arguments_ = other.arguments_;
+		return *this;
+	}
+	Instruction& operator=(Instruction&& other)
+	{
+		opCode_ = other.opCode_;
+		arguments_ = std::move(other.arguments_);
+		return *this;
+	}
 	OpCode opCode() const { return opCode_; }
-	const std::vector<Argument>& arguments() { return arguments_; }
+	const std::vector<Argument>& arguments() const { return arguments_; }
+	std::vector<Argument>& arguments() { return arguments_; }
 };
 
 
@@ -135,16 +177,52 @@ class Processor
 	friend class Function;
 
 	std::vector<Instruction> programm_;
-	std::vector<BaseType> baseTypes_;
+	BaseTypeVector baseTypes_;
 	std::vector<StructType> structs_;
 	Stack stack_;
 	std::vector<size_t> functionStackStartPositions_;
 	Stack FunctionReturnValues_;
 	bool finished_;
+	bool returningFromFunction_;
 
 	void functionEntry();
 	void functionExit();
+
+
+	std::optional<int64_t> end_(Instruction&& instruction);
+
+	std::optional<int64_t> call_(Instruction&& instruction);
+	std::optional<int64_t> ret_(Instruction&& instruction);
+
+	std::optional<int64_t> scopeRet_(Instruction&& instruction);
+	std::optional<int64_t> init_(Instruction&& instruction);
+	std::optional<int64_t> mov_(Instruction&& instruction);
+
+	std::optional<int64_t> if_(Instruction&& instruction);
+	std::optional<int64_t> while_(Instruction&& instruction);
+
+	std::optional<int64_t> add_(Instruction&& instruction);
+	std::optional<int64_t> sub_(Instruction&& instruction);
+	std::optional<int64_t> mul_(Instruction&& instruction);
+	std::optional<int64_t> div_(Instruction&& instruction);
+	std::optional<int64_t> mod_(Instruction&& instruction);
+	std::optional<int64_t> and_(Instruction&& instruction);
+	std::optional<int64_t> or_(Instruction&& instruction);
+	std::optional<int64_t> not_(Instruction&& instruction);
+	std::optional<int64_t> shl_(Instruction&& instruction);
+	std::optional<int64_t> shr_(Instruction&& instruction);
+
+	std::optional<int64_t> stackRealloc_(Instruction&& instruction);
+
+	std::optional<int64_t> print_(Instruction&& instruction);
+	std::optional<int64_t> scan_(Instruction&& instruction);
+
+	std::optional<int64_t> cmp_(Instruction&& instruction);
+	
+
 	std::optional<int64_t> execute(Instruction instruction);
+
+	bool returningFromFunction() const { return returningFromFunction_; }
 	public:
 	Processor(const std::vector<Instruction>& program, size_t stackSize = 1 << 20);
 	std::optional<int64_t> run();

@@ -52,14 +52,16 @@ Function::Function(StackIndex index, Processor* processor) : processor_(processo
 
 
 
-Processor::Processor(const std::vector<Instruction>& program, size_t stackSize) : programm_(program), stack_(stackSize), finished_(false)
+Processor::Processor(const std::vector<Instruction>& program, size_t stackSize) : programm_(program),
+stack_(stackSize), finished_(false), returningFromFunction_(false)
 {
-	baseTypes_.push_back(BaseType("int64", sizeof(int64_t)));
-	baseTypes_.push_back(BaseType("uint64", sizeof(uint64_t)));
-	baseTypes_.push_back(BaseType("char", sizeof(char)));
-	baseTypes_.push_back(BaseType("size_t", sizeof(size_t)));
-	baseTypes_.push_back(BaseType("double", sizeof(double)));
-	baseTypes_.push_back(BaseType("void", 0));
+	baseTypes_.resize(BaseTypeId::countOfBaseTypes);
+	baseTypes_[BaseTypeId::int64_] = BaseType("int64_t", sizeof(int64_t));
+	baseTypes_[BaseTypeId::uint64_] = BaseType("uint64_t", sizeof(uint64_t));
+	baseTypes_[BaseTypeId::char_] = BaseType("char", sizeof(char));
+	baseTypes_[BaseTypeId::size_] = BaseType("size", sizeof(size_t));
+	baseTypes_[BaseTypeId::double_] = BaseType("double", sizeof(double));
+	baseTypes_[BaseTypeId::void_] = BaseType("void", 0);
 }
 
 void Processor::functionEntry()
@@ -76,6 +78,123 @@ void Processor::functionExit()
 	stack_.popLevel();
 }
 
+std::optional<int64_t> Processor::end_(Instruction&& instruction)
+{
+	finished_ = true;
+	if(instruction.arguments().size() == 0)
+		return 0;
+	if(instruction.arguments().size() == 1)
+	{
+		if(std::holds_alternative<int64_t>(instruction.arguments()[0]))
+			return std::get<int64_t>(instruction.arguments()[0]);
+	}
+	throw std::runtime_error("Invalid end instruction");
+}
+
+std::optional<int64_t> Processor::call_(Instruction&& instruction)
+{
+	if(instruction.arguments().size() < 1)
+		throw std::runtime_error("Invalid call instruction");
+	std::vector<Instruction>* funcBody;
+	size_t offset = 0;
+	if(std::holds_alternative<TypeVariant>(instruction.arguments()[0]))
+	{
+		if(!isFunctionType(std::get<TypeVariant>(instruction.arguments()[0])))
+			throw std::runtime_error("Invalid call instruction argument");
+		if(!std::get<FunctionType>(std::get<TypeVariant>(instruction.arguments()[0])).isValid())
+			throw std::runtime_error("Invalid function type in call instruction");
+		if(!std::holds_alternative<StackIndex>(instruction.arguments()[1]))
+			throw std::runtime_error("Invalid call instruction argument");
+		StackIndex funcIndex = std::get<StackIndex>(instruction.arguments()[1]);
+		if(!funcIndex.isValid())
+			throw std::runtime_error("Invalid StackIndex in call instruction argument");
+		Element funcElement = stack_.element(funcIndex.index());
+		if(!isFunctionType(funcElement.type()))
+			throw std::runtime_error("StackIndex in call instruction does not point to a FunctionType");
+		funcBody = reinterpret_cast<std::vector<Instruction>*>(stack_.at(funcElement.pos()));
+		offset = 2;
+	}
+	else if(std::holds_alternative<Function>(instruction.arguments()[0]))
+	{
+		funcBody = &std::get<Function>(instruction.arguments()[0]).body();
+		offset = 1;
+	}
+	else
+		throw std::runtime_error("Invalid call instruction argument");
+		
+	throw std::runtime_error("Invalid call instruction argument");
+	FunctionType func;
+	if(isFunctionType(std::get<TypeVariant>(instruction.arguments()[0])))
+	{
+		func = std::get<FunctionType>(std::get<TypeVariant>(instruction.arguments()[0]));
+		if(!func.isValid())
+			throw std::runtime_error("Invalid function type in call instruction");
+	}
+	else
+		throw std::runtime_error("Invalid function type in call instruction");
+
+	functionEntry();
+	if(func.argumentsTypes().size() != instruction.arguments().size() - offset)
+		throw std::runtime_error("Invalid number of call arguments");
+	for(size_t i = offset; i < instruction.arguments().size(); ++i)
+	{
+		if(std::holds_alternative<StackIndex>(instruction.arguments()[i]))
+		{
+			StackIndex index = std::get<StackIndex>(instruction.arguments()[i]);
+			if(!index.isValid())
+				throw std::runtime_error("Invalid StackIndex in call instruction argument");
+			if(!isTypeCompatible(stack_.element(index.index()).type(), func.argumentsTypes()[i - offset]))
+				throw std::runtime_error("Incompatible type for call instruction argument");
+			stack_.push(stack_.element(index.index()));
+		}
+		else if(std::holds_alternative<int64_t>(instruction.arguments()[i]))
+		{
+			int64_t value = std::get<int64_t>(instruction.arguments()[i]);
+			TypeVariant expectedType = func.argumentsTypes()[i - offset];
+			if(!isTypeCompatible(expectedType, TypeVariant(&baseTypes_[BaseTypeId::int64_])))
+				throw std::runtime_error("Incompatible type for call instruction argument");
+			ElementInfo elemInfo(func.argumentNames()[i-offset], expectedType);
+			uint8_t* dataPtr = stack_.push(elemInfo);
+			*reinterpret_cast<int64_t*>(dataPtr) = value;
+		}
+		else if(std::holds_alternative<size_t>(instruction.arguments()[i]))
+		{
+			size_t value = std::get<size_t>(instruction.arguments()[i]);
+			TypeVariant expectedType = func.argumentsTypes()[i - offset];
+			if(!isTypeCompatible(expectedType, TypeVariant(&baseTypes_[BaseTypeId::size_])))
+				throw std::runtime_error("Incompatible type for call instruction argument");
+			ElementInfo elemInfo(func.argumentNames()[i-offset], expectedType);
+			uint8_t* dataPtr = stack_.push(elemInfo);
+			*reinterpret_cast<size_t*>(dataPtr) = value;
+		}
+		else if(std::holds_alternative<std::string>(instruction.arguments()[i]))
+		{
+			std::string value = std::get<std::string>(instruction.arguments()[i]);
+			TypeVariant expectedType = func.argumentsTypes()[i - offset];
+			if(!isTypeCompatible(expectedType, TypeVariant(&baseTypes_[BaseTypeId::char_])))
+				throw std::runtime_error("Incompatible type for call instruction argument");
+			ElementInfo elemInfo(func.argumentNames()[i-offset], expectedType);
+			uint8_t* dataPtr = stack_.push(elemInfo);
+			strcpy(reinterpret_cast<char*>(dataPtr), value.c_str());
+		}
+		else
+		{
+			throw std::runtime_error("Invalid argument type in call instruction");
+		}
+	}
+	for(size_t i = 0; i < func.size(); ++i)
+	{
+		if(finished())
+			break;
+		if(returningFromFunction())
+		{
+			returningFromFunction_ = false;
+			break;
+		}
+		execute(funcBody->at(i));
+	}
+	functionExit();
+}
 std::optional<int64_t> Processor::execute(Instruction instruction)
 {
 	if(finished())
@@ -97,33 +216,7 @@ std::optional<int64_t> Processor::execute(Instruction instruction)
 	
 	if(instruction.opCode() == OpCode::call_)
 	{
-		if(instruction.arguments().size() < 1)
-			throw std::runtime_error("Invalid call instruction");
-		if(!std::holds_alternative<TypeVariant>(instruction.arguments()[0]))
-			throw std::runtime_error("Invalid call instruction argument");
-		FunctionType func;
-		if(isFunctionType(std::get<TypeVariant>(instruction.arguments()[0])))
-		{
-			func = std::get<FunctionType>(std::get<TypeVariant>(instruction.arguments()[0]));
-			if(!func.isValid())
-				throw std::runtime_error("Invalid function type in call instruction");
-		}
-		else
-			throw std::runtime_error("Invalid function type in call instruction");
-		stack_.newLevel();
-		functionStackStartPositions_.push_back(stack_.elementCount());
-		for(size_t i = 1; i < instruction.arguments().size(); ++i)
-		{
-			if(std::holds_alternative<StackIndex>(instruction.arguments()[i]))
-			{
-				StackIndex index = std::get<StackIndex>(instruction.arguments()[i]);
-				if(index.index() >= stack_.size())
-					throw std::runtime_error("Invalid call argument index");
-				stack_.push(stack_.element(index.index()));
-			}
-			else
-				throw std::runtime_error("Invalid call instruction argument");
-		}
+		
 	}
 	return std::nullopt;
 }	
