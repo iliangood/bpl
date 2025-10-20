@@ -12,4 +12,7 @@ enum class ValidationLevel
 void setValidationLevel(ValidationLevel level);
 ValidationLevel getValidationLevel();
 
+bool getAllowResizeStack();
+void setAllowResizeStack(bool allow);
+
 #endif

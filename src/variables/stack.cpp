@@ -99,6 +99,8 @@ std::optional<size_t> Stack::find(std::string name)
 
 void Stack::resize(size_t new_capacity)
 {
+	if(!getAllowResizeStack())
+		throw std::runtime_error("Stack::resize(): stack overflow - resizing is forbidden yet, for use enable it via utils::setAllowResizeStack(true)");
 	data_ = (uint8_t*)realloc(data_, new_capacity * sizeof(uint8_t));
 	if(!data_)
 		throw std::bad_alloc();

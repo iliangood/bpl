@@ -93,11 +93,11 @@ std::optional<int64_t> Processor::end_(Instruction&& instruction)
 	throw std::runtime_error("Invalid end instruction");
 }
 
-std::optional<int64_t> Processor::call_(Instruction&& instruction) //TODO: Переделать для обновленного StackIndex
+std::optional<int64_t> Processor::call_(Instruction&& instruction)
 {
 	
 }
-std::optional<int64_t> Processor::execute(Instruction instruction) //TODO: Переделать для обновленного StackIndex
+std::optional<int64_t> Processor::execute(Instruction instruction)
 {
 	if(finished())
 	{
@@ -107,7 +107,7 @@ std::optional<int64_t> Processor::execute(Instruction instruction) //TODO: Пе�
 	return std::nullopt;
 }	
 
-void Processor::notifyStackReallocation(uint8_t* new_data) //TODO:
+void Processor::notifyStackReallocation(uint8_t* /*new_data*/) // Currently does nothing
 {
 	execute(Instruction(OpCode::stackRealloc_, {}));
 }
