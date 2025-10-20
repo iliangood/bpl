@@ -181,7 +181,6 @@ class Processor
 
 	std::vector<Instruction> programm_;
 	BaseTypeVector baseTypes_;
-	std::vector<StructType> structs_;
 	Stack stack_;
 	std::vector<size_t> functionStackStartPositions_;
 	Stack FunctionReturnValues_;

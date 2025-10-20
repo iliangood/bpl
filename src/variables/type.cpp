@@ -49,83 +49,6 @@ bool BaseType::isValid() const
 
 
 
-StructType::StructType(std::string name, const std::vector<TypeVariant>& types, const std::vector<std::string>& fieldNames) : name_(std::move(name)),
-types_(types), fieldNames_(fieldNames), totalSize_(0)
-{
-	for (size_t i = 0; i < types_.size(); ++i)
-	{
-		totalSize_ += sizeOfTypeVariant(types_[i]);
-	}
-	if(getValidationLevel() >= ValidationLevel::basic)
-	{
-		if(!isValid())
-			throw std::invalid_argument("StructType::StructType(std::string, const std::vector<TypeVariant>&) Invalid parameters");
-	}
-}
-
-std::string StructType::name() const 
-{
-	if(getValidationLevel() >= ValidationLevel::full)
-	{
-		if(!isValid())
-			throw std::runtime_error("StructType::name() called on invalid StructType");
-	}
-	return name_; 
-}
-
-size_t StructType::size() const 
-{ 
-	if(getValidationLevel() >= ValidationLevel::full)
-	{
-		if(!isValid())
-			throw std::runtime_error("StructType::size() called on invalid StructType");
-	}
-	return totalSize_; 
-}
-
-const std::vector<TypeVariant>& StructType::types() const 
-{
-	if(getValidationLevel() >= ValidationLevel::full)
-	{
-		if(!isValid())
-			throw std::runtime_error("StructType::baseTypes() called on invalid StructType");
-	}
-	return types_; 
-}
-
-bool StructType::operator==(const StructType& other) const
-{
-	if(getValidationLevel() >= ValidationLevel::light)
-	{
-		if(!other.isValid())
-			throw std::invalid_argument("StructType::operator==(const StructType&) invalid other StructType");
-	}
-	if(getValidationLevel() >= ValidationLevel::full)
-	{
-		if(!isValid())
-			throw std::runtime_error("StructType::operator==(const StructType&) called on invalid StructType");
-	}
-	return types_ == other.types_;
-}
-
-bool StructType::isValid() const
-{
-	if(name_.empty())
-		return false;
-	if(types_.empty())
-		return false;
-	if(getValidationLevel() < ValidationLevel::basic)
-		return true;
-	for(size_t i = 0; i < types_.size(); ++i)
-	{
-		if(!::isValid(types_[i]))
-			return false;
-	}
-	return true;
-}
-
-
-
 PointerType::PointerType(TypeVariant pointerType) : pointerType_(new TypeVariant)
 {
 	*pointerType_ = pointerType;
@@ -489,12 +412,6 @@ bool isValid(const TypeVariant& var)
 			return false;
 		return std::get<const BaseType*>(var)->isValid();
 	}
-	else if(isStructType(var))
-		{
-			if(std::get<const StructType*>(var) == nullptr)
-				return false;
-			return std::get<const StructType*>(var)->isValid();
-		}
 	else if(isPointerType(var))
 		return std::get<PointerType>(var).isValid();
 	else if(isFunctionType(var))
@@ -515,11 +432,6 @@ bool isValid(const TypeVariant& var)
 bool isBaseType(const TypeVariant& var) 
 {
 	return std::holds_alternative<const BaseType*>(var);
-}
-
-bool isStructType(const TypeVariant& var) 
-{
-	return std::holds_alternative<const StructType*>(var);
 }
 
 bool isPointerType(const TypeVariant& var) 
@@ -546,8 +458,6 @@ size_t sizeOfTypeVariant(const TypeVariant& var)
 {
 	if (isBaseType(var))
 		return std::get<const BaseType*>(var)->size();
-	else if (isStructType(var))
-		return std::get<const StructType*>(var)->size();
 	else if (isFunctionType(var))
 		return std::get<FunctionType>(var).size();
 	else if (isPointerType(var))
@@ -564,13 +474,6 @@ bool isBaseType(const std::unique_ptr<TypeVariant>& var)
 	if(var == nullptr)
 		return false;
 	return isBaseType(*var);
-}
-
-bool isStructType(const std::unique_ptr<TypeVariant>& var) 
-{
-	if(var == nullptr)
-		return false;
-	return isStructType(*var);
 }
 
 bool isPointerType(const std::unique_ptr<TypeVariant>& var) 
@@ -615,8 +518,6 @@ bool operator==(const TypeVariant& a, const TypeVariant& b)
 		return false;
 	if (isBaseType(a))
 		return std::get<const BaseType*>(a) == std::get<const BaseType*>(b);
-	else if (isStructType(a))
-		return std::get<const StructType*>(a) == std::get<const StructType*>(b);
 	else if (isFunctionType(a))
 		return std::get<FunctionType>(a) == std::get<FunctionType>(b);
 	else if (isPointerType(a))
@@ -637,8 +538,6 @@ bool isTypeCompatible(const TypeVariant& a, const TypeVariant& b)
 		return false;
 	if (isBaseType(a))
 		return std::get<const BaseType*>(a) == std::get<const BaseType*>(b);
-	else if (isStructType(a))
-		return std::get<const StructType*>(a) == std::get<const StructType*>(b);
 	else if (isFunctionType(a))
 		return std::get<FunctionType>(a) == std::get<FunctionType>(b);
 	else if (isPointerType(a))

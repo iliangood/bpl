@@ -115,45 +115,21 @@ public:
 	size_t size() const;
 };
 
-class StructType
-{
-	std::string name_;
-	std::vector<TypeVariant> types_;
-	std::vector<std::string> fieldNames_;
-	size_t totalSize_;
-public:
-	StructType(std::string name, const std::vector<TypeVariant>& types, const std::vector<std::string>& fieldNames);
-	StructType(StructType&&) = default;
-	StructType(const StructType&) = default;
-	StructType& operator=(StructType&&) = default;
-	StructType& operator=(const StructType&) = default;
 
-	bool isValid() const;
 
-	bool operator==(const StructType& other) const;
-	bool operator!=(const StructType& other) const { return !(*this == other); }
-
-	std::string name() const;
-	size_t size() const;
-
-	const std::vector<TypeVariant>& types() const;
-	const std::vector<std::string>& fieldNames() const { return fieldNames_; }
-};
-
-class TypeVariant : public std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>
+class TypeVariant : public std::variant<const BaseType*, FunctionType, PointerType, ArrayType, StackLinkType>
 {
 public:
-    using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>::variant;
+    using std::variant<const BaseType*, FunctionType, PointerType, ArrayType, StackLinkType>::variant;
 
-    using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>::index;
-    using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>::operator=;
+    using std::variant<const BaseType*, FunctionType, PointerType, ArrayType, StackLinkType>::index;
+    using std::variant<const BaseType*, FunctionType, PointerType, ArrayType, StackLinkType>::operator=;
 };
 
 bool isValid(const TypeVariant& var);
 bool isValid(const std::unique_ptr<TypeVariant>& var);
 
 bool isBaseType(const TypeVariant& var);
-bool isStructType(const TypeVariant& var);
 bool isPointerType(const TypeVariant& var);
 bool isFunctionType(const TypeVariant& var);
 bool isArrayType(const TypeVariant& var);
@@ -161,7 +137,6 @@ bool isStackLinkType(const TypeVariant& var);
 size_t sizeOfTypeVariant(const TypeVariant& var);
 
 bool isBaseType(const std::unique_ptr<TypeVariant>& var);
-bool isStructType(const std::unique_ptr<TypeVariant>& var);
 bool isPointerType(const std::unique_ptr<TypeVariant>& var);
 bool isFunctionType(const std::unique_ptr<TypeVariant>& var);
 bool isArrayType(const std::unique_ptr<TypeVariant>& var);
