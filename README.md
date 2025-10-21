@@ -1,4 +1,4 @@
-# NGL - not good language
+# BPL - bad programming language
 - интерпретируемый язык программирования
 
 Все еще находится в разработке
