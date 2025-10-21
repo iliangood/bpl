@@ -95,7 +95,18 @@ std::optional<int64_t> Processor::end_(Instruction&& instruction)
 
 std::optional<int64_t> Processor::call_(Instruction&& instruction)
 {
-	
+	if(instruction.arguments().size() < 1)
+		throw std::runtime_error("Invalid call instruction: no function specified");
+	std::vector<Instruction>* functionBody = nullptr;
+	FunctionType* functionType;
+	if(std::holds_alternative<Function>(instruction.arguments()[0]))
+	{
+		Function& func = std::get<Function>(instruction.arguments()[0]); 
+		if(!func.isValid())
+			throw std::runtime_error("Invalid call instruction: invalid Function");
+		functionBody = &func.body();
+		functionType = &func.type();
+	}
 }
 std::optional<int64_t> Processor::execute(Instruction instruction)
 {
@@ -103,7 +114,77 @@ std::optional<int64_t> Processor::execute(Instruction instruction)
 	{
 		return std::nullopt;
 	}
-	
+	switch (instruction.opCode())
+	{
+	case OpCode::end_:
+		return end_(std::move(instruction));
+		break;
+	case OpCode::call_:
+		return call_(std::move(instruction));
+		break;
+	case OpCode::ret_:
+		return ret_(std::move(instruction));
+		break;
+	case OpCode::scopeRet_:
+		return scopeRet_(std::move(instruction));
+		break;
+	case OpCode::init_:
+		return init_(std::move(instruction));
+		break;
+	case OpCode::mov_:
+		return mov_(std::move(instruction));
+		break;
+	case OpCode::if_:
+		return if_(std::move(instruction));
+		break;
+	case OpCode::while_:
+		return while_(std::move(instruction));
+		break;
+	case OpCode::add_:
+		return add_(std::move(instruction));
+		break;
+	case OpCode::sub_:
+		return sub_(std::move(instruction));
+		break;
+	case OpCode::mul_:
+		return mul_(std::move(instruction));
+		break;
+	case OpCode::div_:
+		return div_(std::move(instruction));
+		break;
+	case OpCode::mod_:
+		return mod_(std::move(instruction));
+		break;
+	case OpCode::and_:
+		return and_(std::move(instruction));
+		break;
+	case OpCode::or_:
+		return or_(std::move(instruction));
+		break;
+	case OpCode::not_:
+		return not_(std::move(instruction));
+		break;
+	case OpCode::shl_:
+		return shl_(std::move(instruction));
+		break;
+	case OpCode::shr_:
+		return shr_(std::move(instruction));;
+		break;
+	case OpCode::stackRealloc_:
+		return stackRealloc_(std::move(instruction));
+		break;
+	case OpCode::print_:
+		return print_(std::move(instruction));
+		break;
+	case OpCode::scan_:
+		return scan_(std::move(instruction));
+		break;
+	case OpCode::cmp_:
+		return cmp_(std::move(instruction));
+		break;
+	default:
+		break;
+	}
 	return std::nullopt;
 }	
 
