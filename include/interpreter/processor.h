@@ -139,8 +139,10 @@ public:
 
 
 
-	FunctionType type() const { return type_; }
+	FunctionType& type() { return type_; }
+	const FunctionType& type() const { return type_; }
 	std::vector<Instruction>& body() { return body_; }
+	const std::vector<Instruction>& body() const { return body_; }
 };
 
 typedef std::variant<int64_t, size_t, std::string, void*, Condition, TypeVariant, Function, StackIndex, std::vector<Instruction>> Argument;

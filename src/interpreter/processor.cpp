@@ -107,6 +107,21 @@ std::optional<int64_t> Processor::call_(Instruction&& instruction)
 		functionBody = &func.body();
 		functionType = &func.type();
 	}
+	else if(std::holds_alternative<StackIndex>(instruction.arguments()[0]))
+	{
+		StackIndex& index = std::get<StackIndex>(instruction.arguments()[0]);
+		if(!index.isValid())
+			throw std::runtime_error("Invalid call instruction: invalid StackIndex");
+		Element funcElement = stack_.element(index.index());
+		if(!isFunctionType(funcElement.type()))
+			throw std::runtime_error("Invalid call instruction: StackIndex does not point to a FunctionType");
+		functionType = &std::get<FunctionType>(funcElement.type());
+		functionBody = reinterpret_cast<std::vector<Instruction>*>(stack_.at(funcElement.pos()));
+	}
+	else
+	{
+		throw std::runtime_error("Invalid call instruction: first argument is not Function or StackIndex");
+	}
 }
 std::optional<int64_t> Processor::execute(Instruction instruction)
 {
