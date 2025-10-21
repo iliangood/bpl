@@ -628,3 +628,27 @@ bool operator!=(const TypeVariant& a, const TypeVariant& b)
 {
 	return !(a == b);
 }
+
+size_t elementCount(const TypeVariant& var)
+{
+	if (isBaseType(var))
+		return std::get<const BaseType*>(var)->elementCount();
+	if(isStructType(var))
+		return std::get<const StructType*>(var)->elementCount();
+	else if (isFunctionType(var))
+		return std::get<FunctionType>(var).elemetCount();
+	else if (isPointerType(var))
+		return std::get<PointerType>(var).elementCount();
+	else if (isArrayType(var))
+		return std::get<ArrayType>(var).elementCount();
+	else if (isStackLinkType(var))
+		return std::get<StackLinkType>(var).elementCount();
+	return 0;
+}
+
+size_t elementCount(const std::unique_ptr<TypeVariant>& var)
+{
+	if(var == nullptr)
+		return 0;
+	return elementCount(*var);
+}

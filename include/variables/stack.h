@@ -22,6 +22,7 @@ public:
 	size_t size() const { return sizeOfTypeVariant(type_); }
 	TypeVariant type() const { return type_; }
 	std::string name() const { return name_; }
+	size_t elementCount() const { return ::elementCount(type_); }
 };
 
 class Element : public ElementInfo
@@ -34,6 +35,15 @@ public:
 	Element(ElementInfo info, size_t pos) : ElementInfo(info), pos_(pos) {}
 	size_t pos() const { return pos_; }
 	size_t index() const { return index_; }
+
+	Element at(size_t index) const //TODO:
+	{
+		size_t pos = elementCount()/2;
+		for(size_t i = 0; i )
+	}
+	Element atFromEnd(size_t index) const;
+
+	Element operator[](size_t index) const { return at(index); }
 };
 
 class Stack
@@ -41,12 +51,13 @@ class Stack
 	std::vector<Element> elements_;
 	uint8_t* data_;
 	size_t top_;
-	size_t capacity_;
 	std::vector<size_t> levels_;
 	Processor* processor_;
+	size_t capacity_;
+	size_t elementCounter_;
 	bool cleanStackBeforeUse_;
 public:
-	Stack(size_t capacity = 1 << 20, bool cleanStackBeforeUse = false);
+	Stack(Processor* processor, size_t capacity = 1 << 20, bool cleanStackBeforeUse = false);
 	
 	~Stack();
 	
@@ -55,15 +66,15 @@ public:
 	size_t size() const { return top_; }
 	bool empty() const { return top_ == 0; }
 	
-	Element element(size_t index) const { return elements_.at(index); }
-	Element elementFromEnd(size_t index) const { return elements_.at(elements_.size() - 1 - index); }
+	std::optional<Element> element(size_t index) const;
+	std::optional<Element> elementFromEnd(size_t index) const;
 
 	std::optional<size_t> find(std::string name);
 
 	std::vector<Element>& elements() { return elements_; }
-	size_t elementCount() { return elements_.size(); }
+	size_t elementCount() { return elementCounter_; }
 	
-	uint8_t* push(const ElementInfo& element);
+	uint8_t* push(const ElementInfo& element, bool initAfterPush = false);
 	uint8_t* push(const Element& element);
 	void pop();
 	void pop(size_t count);
@@ -72,19 +83,19 @@ public:
 	bool cleanStackBeforeUse() const { return cleanStackBeforeUse_; }
 	
 	size_t currentLevel() const { return levels_.size(); }
-	int newLevel();
-	int popLevel();
-	int deleteLevel() { return popLevel(); }
-	int popToLevel(size_t level);
+	void newLevel();
+	void popLevel();
+	void deleteLevel() { popLevel(); return; }
+	void popToLevel(size_t level);
 
-	uint8_t* at(size_t index);
-	const uint8_t* at(size_t index) const;
+	std::optional<uint8_t*> at(size_t index);
+	std::optional<const uint8_t*> at(size_t index) const;
 
-	uint8_t* operator[](size_t index) { return at(index); }
-	const uint8_t* operator[](size_t index) const { return at(index);}
+	std::optional<uint8_t*> operator[](size_t index) { return at(index); }
+	std::optional<const uint8_t*> operator[](size_t index) const { return at(index);}
 
-	uint8_t* atFromEnd(size_t index);
-	const uint8_t* atFromEnd(size_t index) const;
+	std::optional<uint8_t*> atFromEnd(size_t index);
+	std::optional<const uint8_t*> atFromEnd(size_t index) const;
 
 	void resize(size_t new_capacity);
 	void clear();

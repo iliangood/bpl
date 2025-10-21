@@ -29,6 +29,8 @@ public:
 
 	size_t size() const;
 	std::string name() const;
+
+	size_t elementCount() const { return 1; }
 };
 
 class TypeVariant;
@@ -58,6 +60,8 @@ public:
 	TypeVariant returnType() const;
 	const std::vector<TypeVariant>& argumentsTypes() const;
 	const std::vector<std::string>& argumentNames() const;
+
+	size_t elemetCount() const { return 1; }
 };
 
 
@@ -79,6 +83,8 @@ public:
 
 	TypeVariant pointerType() const;
 	size_t size() const { return sizeof(void*); }
+
+	size_t elementCount() const { return 1; }
 };
 
 class StackLinkType
@@ -89,6 +95,8 @@ public:
 
 	bool operator==(const StackLinkType&) const { return true; }
 	bool operator!=(const StackLinkType& other) const { return !(*this == other); }
+
+	size_t elementCount() const { return 1; }
 };
 
 class ArrayType
@@ -110,6 +118,8 @@ public:
 	TypeVariant elementType() const;
 	size_t count() const;
 	size_t size() const;
+
+	size_t elementCount() const { return count_  + 1; }
 };
 
 
@@ -137,6 +147,8 @@ public:
 
 	const std::vector<TypeVariant>& types() const;
 	const std::vector<std::string>& fieldNames() const { return fieldNames_; }
+
+	size_t elementCount() const { return types_.size() + 1; }
 };
 
 
@@ -171,6 +183,9 @@ size_t sizeOfTypeVariant(const std::unique_ptr<TypeVariant>& var);
 
 bool operator==(const TypeVariant& a, const TypeVariant& b);
 bool operator!=(const TypeVariant& a, const TypeVariant& b);
+
+size_t elementCount(const TypeVariant& var);
+size_t elementCount(const std::unique_ptr<TypeVariant>& var);
 
 
 #endif
