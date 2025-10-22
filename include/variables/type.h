@@ -31,6 +31,7 @@ public:
 	std::string name() const;
 
 	size_t elementCount() const { return 1; }
+	std::vector<size_t> elementSubIndexes() const { return {0}; }
 };
 
 class TypeVariant;
@@ -62,6 +63,7 @@ public:
 	const std::vector<std::string>& argumentNames() const;
 
 	size_t elemetCount() const { return 1; }
+	std::vector<size_t> elementSubIndexes() const { return {0}; }
 };
 
 
@@ -85,6 +87,7 @@ public:
 	size_t size() const { return sizeof(void*); }
 
 	size_t elementCount() const { return 1; }
+	std::vector<size_t> elementSubIndexes() const { return {0}; }
 };
 
 class StackLinkType
@@ -97,6 +100,7 @@ public:
 	bool operator!=(const StackLinkType& other) const { return !(*this == other); }
 
 	size_t elementCount() const { return 1; }
+	std::vector<size_t> elementSubIndexes() const { return {0}; }
 };
 
 class ArrayType
@@ -120,6 +124,7 @@ public:
 	size_t size() const;
 
 	size_t elementCount() const { return count_  + 1; }
+	std::vector<size_t> elementSubIndexes() const;
 };
 
 
@@ -149,6 +154,7 @@ public:
 	const std::vector<std::string>& fieldNames() const { return fieldNames_; }
 
 	size_t elementCount() const { return types_.size() + 1; }
+	std::vector<size_t> elementSubIndexes() const;
 };
 
 
@@ -160,6 +166,16 @@ public:
 
     using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>::index;
     using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>::operator=;
+	
+	bool isValid();
+	bool isBaseType();
+	bool isStructType();
+	bool isPointerType();
+	bool isFunctionType();
+	bool isArrayType();
+	bool isStackLinkType();
+	size_t size();
+	size_t elementCount();
 };
 
 bool isValid(const TypeVariant& var);

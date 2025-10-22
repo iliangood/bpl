@@ -38,7 +38,7 @@ public:
 
 	Element at(size_t index) const //TODO:
 	{
-		size_t pos = elementCount()/2;
+		
 		for(size_t i = 0; i )
 	}
 	Element atFromEnd(size_t index) const;

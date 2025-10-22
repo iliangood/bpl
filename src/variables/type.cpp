@@ -124,6 +124,19 @@ bool StructType::isValid() const
 	return true;
 }
 
+std::vector<size_t> StructType::elementSubIndexes() const
+{
+	std::vector<size_t> subIndexes;
+	subIndexes.reserve(types_.size());
+	size_t top = 0;
+	for(size_t i = 0; i < types_.size(); ++i)
+	{
+		subIndexes.push_back(top);
+		top += types_[i].elementsCount();
+	}
+	return subIndexes;
+}
+
 
 
 PointerType::PointerType(TypeVariant pointerType) : pointerType_(new TypeVariant)
@@ -345,6 +358,16 @@ bool ArrayType::operator==(const ArrayType& other) const
 	return elementType() == other.elementType() && count_ == other.count_;
 }
 
+std::vector<size_t> ArrayType::elementSubIndexes() const
+{
+	std::vector<size_t> subIndexes;
+	subIndexes.reserve(count_);
+	for(size_t i = 0; i < count_; ++i)
+	{
+		subIndexes.push_back(i);
+	}
+	return subIndexes;
+}
 
 
 FunctionType::FunctionType(const std::vector<TypeVariant>& argumentsTypes, TypeVariant returnType) :
@@ -652,3 +675,23 @@ size_t elementCount(const std::unique_ptr<TypeVariant>& var)
 		return 0;
 	return elementCount(*var);
 }
+
+bool TypeVariant::isValid()
+{
+	return ::isValid(*this);
+}
+
+bool isBaseType()
+{
+	return ::isBaseType(*this);
+}
+bool isStructType()
+{
+	return 
+}
+bool isPointerType();
+bool isFunctionType();
+bool isArrayType();
+bool isStackLinkType();
+size_t size();
+size_t elementCount();
