@@ -87,12 +87,15 @@ std::optional<Element> Stack::element(size_t index) const
 
 std::optional<Element> Stack::elementFromEnd(size_t index) const
 {
-	
+	return element(elementCounter_ - 1 - index);
 }
 
 std::optional<uint8_t*> Stack::at(size_t index)
 {
-
+	std::optional<Element> elem = element(index);
+	if(!elem.has_value())
+		return std::nullopt;
+	return data_ + elem->pos();
 }
 
 std::optional<const uint8_t*> Stack::at(size_t index) const

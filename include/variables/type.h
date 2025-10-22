@@ -123,7 +123,7 @@ public:
 	size_t count() const;
 	size_t size() const;
 
-	size_t elementCount() const { return count_  + 1; }
+	size_t elementCount() const;
 	std::vector<size_t> elementSubIndexes() const;
 };
 
@@ -167,15 +167,15 @@ public:
     using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>::index;
     using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>::operator=;
 	
-	bool isValid();
-	bool isBaseType();
-	bool isStructType();
-	bool isPointerType();
-	bool isFunctionType();
-	bool isArrayType();
-	bool isStackLinkType();
-	size_t size();
-	size_t elementCount();
+	bool isValid() const;
+	bool isBaseType() const;
+	bool isStructType() const;
+	bool isPointerType() const;
+	bool isFunctionType() const;
+	bool isArrayType() const;
+	bool isStackLinkType() const;
+	size_t size() const;
+	size_t elementCount() const;
 };
 
 bool isValid(const TypeVariant& var);

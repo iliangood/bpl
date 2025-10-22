@@ -22,7 +22,7 @@ public:
 	size_t size() const { return sizeOfTypeVariant(type_); }
 	TypeVariant type() const { return type_; }
 	std::string name() const { return name_; }
-	size_t elementCount() const { return ::elementCount(type_); }
+	size_t elementCount() const { return type_.elementCount(); }
 };
 
 class Element : public ElementInfo
@@ -36,10 +36,11 @@ public:
 	size_t pos() const { return pos_; }
 	size_t index() const { return index_; }
 
-	Element at(size_t index) const //TODO:
+	Element at(size_t index) 
 	{
-		
-		for(size_t i = 0; i )
+		size_t pos = elements_.size()/2;
+		size_t step = pos/2;
+		std::vector<Element> elements = 
 	}
 	Element atFromEnd(size_t index) const;
 

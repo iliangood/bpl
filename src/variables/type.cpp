@@ -128,11 +128,12 @@ std::vector<size_t> StructType::elementSubIndexes() const
 {
 	std::vector<size_t> subIndexes;
 	subIndexes.reserve(types_.size());
-	size_t top = 0;
+	subIndexes.push_back(0);
+	size_t top = 1;
 	for(size_t i = 0; i < types_.size(); ++i)
 	{
 		subIndexes.push_back(top);
-		top += types_[i].elementsCount();
+		top += types_[i].elementCount();
 	}
 	return subIndexes;
 }
@@ -245,7 +246,6 @@ ArrayType::ArrayType(TypeVariant elementType, size_t count) : elementType_(new T
 			throw std::invalid_argument("ArrayType::ArrayType(TypeVariant, size_t) Invalid ArrayType parameters");
 	}
 }
-
 
 TypeVariant ArrayType::elementType() const 
 {
@@ -361,13 +361,28 @@ bool ArrayType::operator==(const ArrayType& other) const
 std::vector<size_t> ArrayType::elementSubIndexes() const
 {
 	std::vector<size_t> subIndexes;
-	subIndexes.reserve(count_);
+	size_t elementSize = elementType_->elementCount();
+	subIndexes.reserve(count_ + 1);
+	subIndexes.push_back(0);
+	size_t top = 1;
 	for(size_t i = 0; i < count_; ++i)
 	{
 		subIndexes.push_back(i);
+		top += elementSize;
 	}
 	return subIndexes;
 }
+
+size_t ArrayType::elementCount() const
+{
+	if(getValidationLevel() >= ValidationLevel::light)
+	{
+		if(!isValid())
+			throw std::runtime_error("ArrayType::elementCount() called on invalid ArrayType");
+	}
+	return elementType_->elementCount() * count_ + 1;
+}
+
 
 
 FunctionType::FunctionType(const std::vector<TypeVariant>& argumentsTypes, TypeVariant returnType) :
@@ -496,137 +511,98 @@ bool FunctionType::operator==(const FunctionType& other) const
 
 bool isValid(const TypeVariant& var) 
 {
-	if(isBaseType(var))
-	{
-		if(std::get<const BaseType*>(var) == nullptr)
-			return false;
-		return std::get<const BaseType*>(var)->isValid();
-	}
-	else if(isStructType(var))
-	{
-		if(std::get<const StructType*>(var) == nullptr)
-			return false;
-		return std::get<const StructType*>(var)->isValid();
-	}
-	else if(isPointerType(var))
-		return std::get<PointerType>(var).isValid();
-	else if(isFunctionType(var))
-	{
-		return std::get<FunctionType>(var).isValid();
-	}
-	else if(isArrayType(var))
-	{
-		return std::get<ArrayType>(var).isValid();
-	}
-	else if(isStackLinkType(var))
-	{
-		return std::get<StackLinkType>(var).isValid();
-	}
-	throw std::runtime_error("isValid(const TypeVariant&) called on unknown TypeVariant type");
-	return false;
+	return var.isValid();
 }
 
 bool isValid(const std::unique_ptr<TypeVariant>& var) 
 {
 	if(var == nullptr)
 		return false;
-	return isValid(*var);
+	return var->isValid();
 }
 
 bool isBaseType(const TypeVariant& var) 
 {
-	return std::holds_alternative<const BaseType*>(var);
+	return var.isBaseType();
 }
 
 bool isStructType(const TypeVariant& var) 
 {
-	return std::holds_alternative<const StructType*>(var);
+	return var.isStructType();
 }
 
 bool isPointerType(const TypeVariant& var) 
 {
-	return std::holds_alternative<PointerType>(var);
+	return var.isPointerType();
 }
 
 bool isFunctionType(const TypeVariant& var) 
 {
-	return std::holds_alternative<FunctionType>(var);
+	return var.isFunctionType();
 }
 
 bool isArrayType(const TypeVariant& var) 
 {
-	return std::holds_alternative<ArrayType>(var);
+	return var.isArrayType();
 }
 
 bool isStackLinkType(const TypeVariant& var) 
 {
-	return std::holds_alternative<StackLinkType>(var);
+	return var.isStackLinkType();
 }
 
 size_t sizeOfTypeVariant(const TypeVariant& var)
 {
-	if (isBaseType(var))
-		return std::get<const BaseType*>(var)->size();
-	if(isStructType(var))
-		return std::get<const StructType*>(var)->size();
-	else if (isFunctionType(var))
-		return std::get<FunctionType>(var).size();
-	else if (isPointerType(var))
-		return std::get<PointerType>(var).size();
-	else if (isArrayType(var))
-		return std::get<ArrayType>(var).size();
-	else if (isStackLinkType(var))
-		return std::get<StackLinkType>(var).size();
-	return 0;
+	return var.size();
 }
 
 bool isBaseType(const std::unique_ptr<TypeVariant>& var) 
 {
 	if(var == nullptr)
 		return false;
-	return isBaseType(*var);
+	return var->isBaseType();
 }
 
 bool isStructType(const std::unique_ptr<TypeVariant>& var) 
 {
 	if(var == nullptr)
 		return false;
-	return isStructType(*var);
+	return var->isStructType();
 }
 
 bool isPointerType(const std::unique_ptr<TypeVariant>& var) 
 {
 	if(var == nullptr)
 		return false;
-	return isPointerType(*var);
+	return var->isPointerType();
 }
 
 bool isFunctionType(const std::unique_ptr<TypeVariant>& var) 
 {
 	if(var == nullptr)
 		return false;
-	return isFunctionType(*var);
+	return var->isFunctionType();
 }
 
 bool isArrayType(const std::unique_ptr<TypeVariant>& var) 
 {
 	if(var == nullptr)
 		return false;
-	return isArrayType(*var);
+	return var->isArrayType();
 }
 
 bool isStackLinkType(const std::unique_ptr<TypeVariant>& var) 
 {
 	if(var == nullptr)
 		return false;
-	return isStackLinkType(*var);
+	return var->isStackLinkType();
 }
 
 size_t sizeOfTypeVariant(const std::unique_ptr<TypeVariant>& var)
 {
 	if(var == nullptr)
 		return 0;
-	return sizeOfTypeVariant(*var);
+	return var->size();
 }
 
 
@@ -654,44 +630,103 @@ bool operator!=(const TypeVariant& a, const TypeVariant& b)
 
 size_t elementCount(const TypeVariant& var)
 {
-	if (isBaseType(var))
-		return std::get<const BaseType*>(var)->elementCount();
-	if(isStructType(var))
-		return std::get<const StructType*>(var)->elementCount();
-	else if (isFunctionType(var))
-		return std::get<FunctionType>(var).elemetCount();
-	else if (isPointerType(var))
-		return std::get<PointerType>(var).elementCount();
-	else if (isArrayType(var))
-		return std::get<ArrayType>(var).elementCount();
-	else if (isStackLinkType(var))
-		return std::get<StackLinkType>(var).elementCount();
-	return 0;
+	return var.elementCount();
 }
 
 size_t elementCount(const std::unique_ptr<TypeVariant>& var)
 {
 	if(var == nullptr)
 		return 0;
-	return elementCount(*var);
+	return var->elementCount();
 }
 
-bool TypeVariant::isValid()
+bool TypeVariant::isValid() const
 {
-	return ::isValid(*this);
+	if(isBaseType())
+	{
+		if(std::get<const BaseType*>(*this) == nullptr)
+			return false;
+		return std::get<const BaseType*>(*this)->isValid();
+	}
+	else if(isStructType())
+	{
+		if(std::get<const StructType*>(*this) == nullptr)
+			return false;
+		return std::get<const StructType*>(*this)->isValid();
+	}
+	else if(isPointerType())
+		return std::get<PointerType>(*this).isValid();
+	else if(isFunctionType())
+	{
+		return std::get<FunctionType>(*this).isValid();
+	}
+	else if(isArrayType())
+	{
+		return std::get<ArrayType>(*this).isValid();
+	}
+	else if(isStackLinkType())
+	{
+		return std::get<StackLinkType>(*this).isValid();
+	}
+	throw std::runtime_error("TypeVariant::isValid() called on unknown TypeVariant type");
+	return false;
 }
 
-bool isBaseType()
+bool TypeVariant::isBaseType() const
 {
-	return ::isBaseType(*this);
+	return std::holds_alternative<const BaseType*>(*this);
 }
-bool isStructType()
+bool TypeVariant::isStructType() const
 {
-	return 
+	return std::holds_alternative<const StructType*>(*this);
 }
-bool isPointerType();
-bool isFunctionType();
-bool isArrayType();
-bool isStackLinkType();
-size_t size();
-size_t elementCount();
+bool TypeVariant::isPointerType() const
+{
+	return std::holds_alternative<PointerType>(*this);
+}
+bool TypeVariant::isFunctionType() const
+{
+	return std::holds_alternative<FunctionType>(*this);
+}
+bool TypeVariant::isArrayType() const
+{
+	return std::holds_alternative<ArrayType>(*this);
+}
+bool TypeVariant::isStackLinkType() const
+{
+	return std::holds_alternative<StackLinkType>(*this);
+}
+size_t TypeVariant::size() const
+{
+	if (isBaseType())
+		return std::get<const BaseType*>(*this)->size();
+	if(isStructType())
+		return std::get<const StructType*>(*this)->size();
+	else if (isFunctionType())
+		return std::get<FunctionType>(*this).size();
+	else if (isPointerType())
+		return std::get<PointerType>(*this).size();
+	else if (isArrayType())
+		return std::get<ArrayType>(*this).size();
+	else if (isStackLinkType())
+		return std::get<StackLinkType>(*this).size();
+	throw std::runtime_error("TypeVariant::size() called on unknown TypeVariant type");
+	return 0;
+}
+size_t TypeVariant::elementCount() const
+{
+	if (isBaseType())
+		return std::get<const BaseType*>(*this)->elementCount();
+	if(isStructType())
+		return std::get<const StructType*>(*this)->elementCount();
+	else if (isFunctionType())
+		return std::get<FunctionType>(*this).elemetCount();
+	else if (isPointerType())
+		return std::get<PointerType>(*this).elementCount();
+	else if (isArrayType())
+		return std::get<ArrayType>(*this).elementCount();
+	else if (isStackLinkType())
+		return std::get<StackLinkType>(*this).elementCount();
+	throw std::runtime_error("TypeVariant::elementCount() called on unknown TypeVariant type");
+	return 0;
+}
