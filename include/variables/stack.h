@@ -33,18 +33,68 @@ class Element : public ElementInfo
 	void setIndex(size_t index) { index_ = index; }
 public:
 	Element(ElementInfo info, size_t pos) : ElementInfo(info), pos_(pos) {}
+	Element(ElementInfo info, size_t pos, size_t index) : ElementInfo(info), pos_(pos), index_(index) {}
 	size_t pos() const { return pos_; }
 	size_t index() const { return index_; }
 
-	Element at(size_t index) 
+	std::optional<Element> at(size_t index) // TODO: Все перепроверить
 	{
-		size_t pos = elements_.size()/2;
-		size_t step = pos/2;
-		std::vector<Element> elements = 
+		if(index == 0)
+			return *this;
+		if(index >= elementCount())
+			throw std::out_of_range("Element::at(size_t) index out of range");
+		TypeVariant typeV = type();
+		if(isBaseType(typeV))
+			return std::nullopt;
+		else if(isStructType(typeV))
+		{
+			const StructType* structType = std::get<const StructType*>(typeV);
+			size_t pos = structType->elementCount()/2;
+			size_t step = pos/2;
+			if(index >= structType->elementCount())
+				return std::nullopt;
+			std::vector<size_t> structSubIndexes = structType->elementSubIndexes();
+			while(structSubIndexes[pos] != index)
+			{
+				if(structSubIndexes[pos] > index)
+				{
+					if(step == 0)
+						step = 1;
+					pos -= step;
+				}
+				else
+				{
+					if(structSubIndexes[pos] + sizeOfTypeVariant(structType->types()[pos]) > index)
+					{
+						Element element(ElementInfo("", structType->types()[pos]), pos_ + structSubIndexes[pos]);
+						return element.at(index - structSubIndexes[pos]);
+					}
+					if(step == 0)
+					{
+						step = 1;
+					}
+					pos += step;
+				}
+				step /= 2;
+			}
+			return Element(ElementInfo("", structType->types()[pos]), pos_, index);
+		}
+		else if(isArrayType(typeV))
+		{
+			const ArrayType& arrayType = std::get<ArrayType>(typeV);
+			size_t elementSize = arrayType.elementType().elementCount();
+			size_t arrayIndex = (index - 1) / elementSize;
+			size_t elementIndex = (index - 1) % elementSize;
+			if(arrayIndex >= arrayType.count())
+				return std::nullopt;
+			Element element(ElementInfo("", arrayType.elementType()), pos_ + arrayIndex * arrayType.elementType().size());
+			return element.at(elementIndex);
+		}
+		throw std::runtime_error("Element::at(size_t) called on unsupported TypeVariant type");
 	}
-	Element atFromEnd(size_t index) const;
+	std::optional<Element> atFromEnd(size_t index) const;
 
-	Element operator[](size_t index) const { return at(index); }
+	std::optional<Element> operator[](size_t index) const { return at(index); }
 };
 
 class Stack

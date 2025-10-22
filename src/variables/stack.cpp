@@ -70,12 +70,12 @@ std::optional<Element> Stack::element(size_t index) const
 		}
 		else
 		{
+			if(elements_[pos].index() + elements_[pos].elementCount() > index)
+			{
+				return elements_[pos][index - elements_[pos].index()];
+			}
 			if(step == 0)
 			{
-				if(elements_[pos].index() + elements_[pos].elementCount() > index)
-				{
-					return elements_[pos][index - elements_[pos].index()];
-				}
 				step = 1;
 			}
 			pos += step;
