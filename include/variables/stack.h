@@ -19,7 +19,7 @@ class ElementInfo
 	TypeVariant type_;
 public:
 	ElementInfo(std::string name, TypeVariant type) : name_(name), type_(type) {}
-	size_t size() const { return sizeOfTypeVariant(type_); }
+	size_t size() const { return type_.size(); }
 	TypeVariant type() const { return type_; }
 	std::string name() const { return name_; }
 	size_t elementCount() const { return type_.elementCount(); }
@@ -37,26 +37,24 @@ public:
 	size_t pos() const { return pos_; }
 	size_t index() const { return index_; }
 
-	std::optional<Element> at(size_t index) // TODO: Все перепроверить
+	std::optional<Element> at(size_t subIndex) const // TODO: Все перепроверить
 	{
-		if(index == 0)
+		if(subIndex == 0)
 			return *this;
-		if(index >= elementCount())
-			throw std::out_of_range("Element::at(size_t) index out of range");
-		TypeVariant typeV = type();
-		if(isBaseType(typeV))
+		if(subIndex >= elementCount())
 			return std::nullopt;
-		else if(isStructType(typeV))
+		TypeVariant typeV = type();
+		if(typeV.isBaseType())
+			return std::nullopt;
+		else if(typeV.isStructType())
 		{
 			const StructType* structType = std::get<const StructType*>(typeV);
 			size_t pos = structType->elementCount()/2;
 			size_t step = pos/2;
-			if(index >= structType->elementCount())
-				return std::nullopt;
 			std::vector<size_t> structSubIndexes = structType->elementSubIndexes();
-			while(structSubIndexes[pos] != index)
+			while(structSubIndexes[pos] != subIndex)
 			{
-				if(structSubIndexes[pos] > index)
+				if(structSubIndexes[pos] > subIndex)
 				{
 					if(step == 0)
 						step = 1;
@@ -64,10 +62,10 @@ public:
 				}
 				else
 				{
-					if(structSubIndexes[pos] + sizeOfTypeVariant(structType->types()[pos]) > index)
+					if(structSubIndexes[pos] + structType->types()[pos].size() > subIndex)
 					{
 						Element element(ElementInfo("", structType->types()[pos]), pos_ + structSubIndexes[pos]);
-						return element.at(index - structSubIndexes[pos]);
+						return element.at(subIndex - structSubIndexes[pos]);
 					}
 					if(step == 0)
 					{
@@ -77,14 +75,14 @@ public:
 				}
 				step /= 2;
 			}
-			return Element(ElementInfo("", structType->types()[pos]), pos_, index);
+			return Element(ElementInfo("", structType->types()[pos]), pos_, subIndex);
 		}
-		else if(isArrayType(typeV))
+		else if(typeV.isArrayType())
 		{
 			const ArrayType& arrayType = std::get<ArrayType>(typeV);
 			size_t elementSize = arrayType.elementType().elementCount();
-			size_t arrayIndex = (index - 1) / elementSize;
-			size_t elementIndex = (index - 1) % elementSize;
+			size_t arrayIndex = (subIndex - 1) / elementSize;
+			size_t elementIndex = (subIndex - 1) % elementSize;
 			if(arrayIndex >= arrayType.count())
 				return std::nullopt;
 			Element element(ElementInfo("", arrayType.elementType()), pos_ + arrayIndex * arrayType.elementType().size());

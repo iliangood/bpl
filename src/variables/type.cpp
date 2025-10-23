@@ -54,7 +54,7 @@ types_(types), fieldNames_(fieldNames), totalSize_(0)
 {
 	for (size_t i = 0; i < types_.size(); ++i)
 	{
-		totalSize_ += sizeOfTypeVariant(types_[i]);
+		totalSize_ += types_[i].size();
 	}
 	if(getValidationLevel() >= ValidationLevel::basic)
 	{
@@ -118,7 +118,7 @@ bool StructType::isValid() const
 		return true;
 	for(size_t i = 0; i < types_.size(); ++i)
 	{
-		if(!::isValid(types_[i]))
+		if(!types_[i].isValid())
 			return false;
 	}
 	return true;
@@ -217,7 +217,7 @@ bool PointerType::isValid() const
 		return false;
 	if(getValidationLevel() < ValidationLevel::basic)
 		return true;
-	return ::isValid(*pointerType_);
+	return pointerType_->isValid();
 }
 
 bool PointerType::operator==(const PointerType& other) const
@@ -276,7 +276,7 @@ size_t ArrayType::size() const
 		if(!isValid())
 			throw std::runtime_error("ArrayType::size() called on invalid ArrayType");
 	}
-	 return sizeOfTypeVariant(elementType()) * count_;
+	 return elementType().size() * count_;
 }
 
 ArrayType::ArrayType(ArrayType&& other) : count_(other.count_) 
@@ -345,7 +345,7 @@ bool ArrayType::isValid() const
 		return false;
 	if(getValidationLevel() < ValidationLevel::basic)
 		return true;
-	return ::isValid(elementType_);
+	return elementType_->isValid();
 }
 
 bool ArrayType::operator==(const ArrayType& other) const
@@ -453,14 +453,14 @@ bool FunctionType::isValid() const
 {
 	if(returnType_ == nullptr)
 		return false;
-	if(!::isValid(*returnType_))
+	if(!returnType_->isValid())
 		return false;
 	if(getValidationLevel() < ValidationLevel::basic)
 		return true;
 	
 	for(size_t i = 0; i < argumentsTypes_.size(); ++i)
 	{
-		if(!::isValid(argumentsTypes_[i]))
+		if(!argumentsTypes_[i].isValid())
 			return false;
 	}
 	return true;
@@ -508,136 +508,26 @@ bool FunctionType::operator==(const FunctionType& other) const
 
 
 
-
-bool isValid(const TypeVariant& var) 
+bool TypeVariant::operator==(const TypeVariant& other) const
 {
-	return var.isValid();
-}
-
-bool isValid(const std::unique_ptr<TypeVariant>& var) 
-{
-	if(var == nullptr)
+	if (index() != other.index())
 		return false;
-	return var->isValid();
-}
-
-bool isBaseType(const TypeVariant& var) 
-{
-	return var.isBaseType();
-}
-
-bool isStructType(const TypeVariant& var) 
-{
-	return var.isStructType();
-}
-
-bool isPointerType(const TypeVariant& var) 
-{
-	return var.isPointerType();
-}
-
-bool isFunctionType(const TypeVariant& var) 
-{
-	return var.isFunctionType();
-}
-
-bool isArrayType(const TypeVariant& var) 
-{
-	return var.isArrayType();
-}
-
-bool isStackLinkType(const TypeVariant& var) 
-{
-	return var.isStackLinkType();
-}
-
-size_t sizeOfTypeVariant(const TypeVariant& var)
-{
-	return var.size();
-}
-
-bool isBaseType(const std::unique_ptr<TypeVariant>& var) 
-{
-	if(var == nullptr)
-		return false;
-	return var->isBaseType();
-}
-
-bool isStructType(const std::unique_ptr<TypeVariant>& var) 
-{
-	if(var == nullptr)
-		return false;
-	return var->isStructType();
-}
-
-bool isPointerType(const std::unique_ptr<TypeVariant>& var) 
-{
-	if(var == nullptr)
-		return false;
-	return var->isPointerType();
-}
-
-bool isFunctionType(const std::unique_ptr<TypeVariant>& var) 
-{
-	if(var == nullptr)
-		return false;
-	return var->isFunctionType();
-}
-
-bool isArrayType(const std::unique_ptr<TypeVariant>& var) 
-{
-	if(var == nullptr)
-		return false;
-	return var->isArrayType();
-}
-
-bool isStackLinkType(const std::unique_ptr<TypeVariant>& var) 
-{
-	if(var == nullptr)
-		return false;
-	return var->isStackLinkType();
-}
-
-size_t sizeOfTypeVariant(const std::unique_ptr<TypeVariant>& var)
-{
-	if(var == nullptr)
-		return 0;
-	return var->size();
-}
-
-
-bool operator==(const TypeVariant& a, const TypeVariant& b)
-{
-	if (a.index() != b.index())
-		return false;
-	if (isBaseType(a))
-		return std::get<const BaseType*>(a) == std::get<const BaseType*>(b);
-	if(isStructType(a))
-		return std::get<const StructType*>(a) == std::get<const StructType*>(b);
-	else if (isFunctionType(a))
-		return std::get<FunctionType>(a) == std::get<FunctionType>(b);
-	else if (isPointerType(a))
-		return std::get<PointerType>(a) == std::get<PointerType>(b);
-	else if (isArrayType(a))
-		return std::get<ArrayType>(a) == std::get<ArrayType>(b);
+	if (isBaseType())
+		return get<const BaseType*>() == other.get<const BaseType*>();
+	if(isStructType())
+		return std::get<const StructType*>(*this) == other.get<const StructType*>();
+	else if (isFunctionType())
+		return std::get<FunctionType>(*this) == other.get<FunctionType>();
+	else if (isPointerType())
+		return std::get<PointerType>(*this) == other.get<PointerType>();
+	else if (isArrayType())
+		return std::get<ArrayType>(*this) == other.get<ArrayType>();
 	return false;
 }
 
-bool operator!=(const TypeVariant& a, const TypeVariant& b)
+bool TypeVariant::operator!=(const TypeVariant& other) const
 {
-	return !(a == b);
-}
-
-size_t elementCount(const TypeVariant& var)
-{
-	return var.elementCount();
-}
-
-size_t elementCount(const std::unique_ptr<TypeVariant>& var)
-{
-	if(var == nullptr)
-		return 0;
-	return var->elementCount();
+	return !(*this == other);
 }
 
 bool TypeVariant::isValid() const

@@ -176,32 +176,22 @@ public:
 	bool isStackLinkType() const;
 	size_t size() const;
 	size_t elementCount() const;
+	
+	bool operator!=(const TypeVariant& other) const;
+	bool operator==(const TypeVariant& other) const;
+
+	template<typename T>
+	T& get()
+	{
+		return std::get<T>(*this);
+	}
+	template<typename T>
+	const T& get() const
+	{
+		return std::get<T>(*this);
+	}
 };
 
-bool isValid(const TypeVariant& var);
-bool isValid(const std::unique_ptr<TypeVariant>& var);
-
-bool isBaseType(const TypeVariant& var);
-bool isStructType(const TypeVariant& var);
-bool isPointerType(const TypeVariant& var);
-bool isFunctionType(const TypeVariant& var);
-bool isArrayType(const TypeVariant& var);
-bool isStackLinkType(const TypeVariant& var);
-size_t sizeOfTypeVariant(const TypeVariant& var);
-
-bool isBaseType(const std::unique_ptr<TypeVariant>& var);
-bool isStructType(const std::unique_ptr<TypeVariant>& var);
-bool isPointerType(const std::unique_ptr<TypeVariant>& var);
-bool isFunctionType(const std::unique_ptr<TypeVariant>& var);
-bool isArrayType(const std::unique_ptr<TypeVariant>& var);
-bool isStackLinkType(const std::unique_ptr<TypeVariant>& var);
-size_t sizeOfTypeVariant(const std::unique_ptr<TypeVariant>& var);
-
-bool operator==(const TypeVariant& a, const TypeVariant& b);
-bool operator!=(const TypeVariant& a, const TypeVariant& b);
-
-size_t elementCount(const TypeVariant& var);
-size_t elementCount(const std::unique_ptr<TypeVariant>& var);
 
 
 #endif
