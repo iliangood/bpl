@@ -37,39 +37,37 @@ public:
 	size_t pos() const { return pos_; }
 	size_t index() const { return index_; }
 
-	std::optional<Element> at(size_t subIndex) const // TODO: Все перепроверить
+	std::optional<Element> at(size_t subIndex) const
 	{
-		if(subIndex == 0)
+		if(subIndex == 0) 
 			return *this;
 		if(subIndex >= elementCount())
 			return std::nullopt;
 		TypeVariant typeV = type();
-		if(typeV.isBaseType())
+		if(typeV.isBaseType() || typeV.isPointerType() || typeV.isFunctionType() || typeV.isStackLinkType())
+		{
 			return std::nullopt;
+		}
 		else if(typeV.isStructType())
 		{
 			const StructType* structType = std::get<const StructType*>(typeV);
-			size_t pos = structType->elementCount()/2;
+			size_t pos = structType->types().size()/2;
 			size_t step = pos/2;
 			std::vector<size_t> structSubIndexes = structType->elementSubIndexes();
 			while(structSubIndexes[pos] != subIndex)
 			{
+				if(step == 0)
+					step = 1;
 				if(structSubIndexes[pos] > subIndex)
 				{
-					if(step == 0)
-						step = 1;
 					pos -= step;
 				}
 				else
 				{
 					if(structSubIndexes[pos] + structType->types()[pos].size() > subIndex)
 					{
-						Element element(ElementInfo("", structType->types()[pos]), pos_ + structSubIndexes[pos]);
+						Element element(ElementInfo("", structType->types()[pos]), pos_ + structType->offestsBySize(pos), index_ + structSubIndexes[pos]);
 						return element.at(subIndex - structSubIndexes[pos]);
-					}
-					if(step == 0)
-					{
-						step = 1;
 					}
 					pos += step;
 				}
@@ -90,7 +88,13 @@ public:
 		}
 		throw std::runtime_error("Element::at(size_t) called on unsupported TypeVariant type");
 	}
-	std::optional<Element> atFromEnd(size_t index) const;
+	std::optional<Element> atFromEnd(size_t index) const
+	{
+		size_t elemCount = elementCount();
+		if(index >= elemCount)
+			return std::nullopt;
+		return at(elemCount - index - 1);
+	}
 
 	std::optional<Element> operator[](size_t index) const { return at(index); }
 };

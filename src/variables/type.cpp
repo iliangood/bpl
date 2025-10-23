@@ -138,6 +138,44 @@ std::vector<size_t> StructType::elementSubIndexes() const
 	return subIndexes;
 }
 
+std::vector<size_t> StructType::offestsBySize() const
+{
+	if(getValidationLevel() >= ValidationLevel::light)
+	{
+		if(!isValid())
+			throw std::runtime_error("StructType::offestsBySize(size_t) called on invalid StructType");
+	}
+	std::vector<size_t> offsets;
+	offsets.reserve(types_.size() + 1);
+	size_t currentOffset = 0;
+	offsets.push_back(0);
+	for(size_t i = 0; i < types_.size(); ++i)
+	{
+		offsets.push_back(currentOffset);
+		currentOffset += types_[i].size();
+	}
+	return offsets;
+}
+
+size_t StructType::offestsBySize(size_t index) const
+{
+	if(getValidationLevel() >= ValidationLevel::light)
+	{
+		if(!isValid())
+			throw std::runtime_error("StructType::offestsBySize(size_t) called on invalid StructType");
+	}
+	if(index > types_.size())
+		throw std::out_of_range("StructType::offestsBySize(size_t) index out of range");
+	if(index == 0)
+		return 0;
+	size_t offset = 0;
+	for(size_t i = 0; i < index-1; ++i)
+	{
+		offset += types_[i].size();
+	}
+	return offset;
+}
+
 
 
 PointerType::PointerType(TypeVariant pointerType) : pointerType_(new TypeVariant)
