@@ -155,7 +155,8 @@ public:
 
 	size_t elementCount() const { return types_.size() + 1; }
 	std::vector<size_t> elementSubIndexes() const;
-	size_t offestsBySize(size_t index) const;
+	size_t elementSubIndex(size_t index) const;
+	size_t offestBySize(size_t index) const;
 	std::vector<size_t> offestsBySize() const; // Returns offsets of struct and its fields
 };
 

@@ -138,6 +138,20 @@ std::vector<size_t> StructType::elementSubIndexes() const
 	return subIndexes;
 }
 
+size_t StructType::elementSubIndex(size_t index) const
+{
+	if(index == 0)
+		return 0;
+	if(index > types_.size())
+		throw std::out_of_range("StructType::elementSubIndex(size_t) index out of range");
+	size_t top = 1;
+	for(size_t i = 0; i < index - 1; ++i)
+	{
+		top += types_[i].elementCount();
+	}
+	return top;
+}
+
 std::vector<size_t> StructType::offestsBySize() const
 {
 	if(getValidationLevel() >= ValidationLevel::light)
@@ -157,7 +171,7 @@ std::vector<size_t> StructType::offestsBySize() const
 	return offsets;
 }
 
-size_t StructType::offestsBySize(size_t index) const
+size_t StructType::offestBySize(size_t index) const
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{

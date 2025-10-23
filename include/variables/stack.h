@@ -66,7 +66,7 @@ public:
 				{
 					if(structSubIndexes[pos] + structType->types()[pos].size() > subIndex)
 					{
-						Element element(ElementInfo("", structType->types()[pos]), pos_ + structType->offestsBySize(pos), index_ + structSubIndexes[pos]);
+						Element element(ElementInfo("", structType->types()[pos]), pos_ + structType->offestBySize(pos), index_ + structSubIndexes[pos]);
 						return element.at(subIndex - structSubIndexes[pos]);
 					}
 					pos += step;
@@ -88,6 +88,26 @@ public:
 		}
 		throw std::runtime_error("Element::at(size_t) called on unsupported TypeVariant type");
 	}
+
+	std::optional<Element> atSubElements(size_t subIndex)
+	{
+		TypeVariant typeV = type();
+		if(typeV.isBaseType() || typeV.isPointerType() || typeV.isFunctionType() || typeV.isStackLinkType())
+		{
+			return std::nullopt;
+		}
+		if(typeV.isStructType())
+		{
+			const StructType* structType = typeV.get<const StructType*>();
+			return Element(ElementInfo("", structType->types()[subIndex-1]), pos_ + structType->offestBySize(subIndex) , index_ + subIndex);
+		}
+		if(typeV.isArrayType()) // TODO:
+		{
+
+		}
+		throw std::runtime_error("Element::atSubElements(size_t) called on unsupported TypeVariant type");
+	}
+
 	std::optional<Element> atFromEnd(size_t index) const
 	{
 		size_t elemCount = elementCount();
