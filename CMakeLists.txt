@@ -5,13 +5,13 @@ add_compile_options(-std=c++17 -Wall -Wextra -Wpedantic)
 
 include_directories(include)
 
-add_library(utils src/utils.cpp include/utils.h)
+add_library(utils STATIC src/utils.cpp include/utils.h)
 
-add_library(stack src/variables/stack.cpp include/variables/stack.h)
+add_library(stack STATIC src/variables/stack.cpp include/variables/stack.h)
 
-add_library(interpreter src/interpreter/processor.cpp include/interpreter/processor.h)
+add_library(interpreter STATIC src/interpreter/processor.cpp include/interpreter/processor.h)
 
-add_library(variables src/variables/type.cpp include/variables/type.h)
+add_library(variables STATIC src/variables/type.cpp include/variables/type.h)
 
 target_link_libraries(interpreter variables stack utils)
 
