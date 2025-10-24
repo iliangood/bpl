@@ -93,6 +93,20 @@ const std::vector<TypeVariant>& StructType::types() const
 	return types_; 
 }
 
+TypeVariant StructType::type(size_t index) const
+{
+	if(getValidationLevel() >= ValidationLevel::full)
+	{
+		if(!isValid())
+			throw std::runtime_error("StructType::baseTypes() called on invalid StructType");
+	}
+	if(index == 0)
+		return this;
+	if(index > types_.size())
+		throw std::out_of_range("StructType::elementSubIndex(size_t) index out of range");
+	return types_[index-1];
+}
+
 bool StructType::operator==(const StructType& other) const
 {
 	if(getValidationLevel() >= ValidationLevel::light)
@@ -152,12 +166,12 @@ size_t StructType::elementSubIndex(size_t index) const
 	return top;
 }
 
-std::vector<size_t> StructType::offestsBySize() const
+std::vector<size_t> StructType::offsetsBySize() const
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!isValid())
-			throw std::runtime_error("StructType::offestsBySize(size_t) called on invalid StructType");
+			throw std::runtime_error("StructType::offsetsBySize(size_t) called on invalid StructType");
 	}
 	std::vector<size_t> offsets;
 	offsets.reserve(types_.size() + 1);
@@ -171,15 +185,15 @@ std::vector<size_t> StructType::offestsBySize() const
 	return offsets;
 }
 
-size_t StructType::offestBySize(size_t index) const
+size_t StructType::offsetBySize(size_t index) const
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
 		if(!isValid())
-			throw std::runtime_error("StructType::offestsBySize(size_t) called on invalid StructType");
+			throw std::runtime_error("StructType::offsetsBySize(size_t) called on invalid StructType");
 	}
 	if(index > types_.size())
-		throw std::out_of_range("StructType::offestsBySize(size_t) index out of range");
+		throw std::out_of_range("StructType::offsetsBySize(size_t) index out of range");
 	if(index == 0)
 		return 0;
 	size_t offset = 0;

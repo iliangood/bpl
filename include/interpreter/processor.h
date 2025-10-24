@@ -79,20 +79,29 @@ public:
 	const BaseType& operator[](BaseTypeId id) const { return std::vector<BaseType>::operator[](static_cast<size_t>(id)); }
 	void resize(BaseTypeId count) { std::vector<BaseType>::resize(static_cast<size_t>(count)); }
 };
-
 class Processor;
+
+class PreStackIndex
+{
+	size_t index_;
+	bool global_;
+public:
+	PreStackIndex(size_t index, bool isGlobal = false) : index_(index), global_(isGlobal) {}
+	size_t index() { return index_; }
+	bool isGlobal() { return global_; }
+	bool global() { return global_; }
+};
 
 class StackIndex
 {
 	size_t index_;
-	std::optional<std::vector<size_t>> subIndexes_;
 	Processor* processor_;
 public:
-	StackIndex(size_t index, Processor* processor, const std::optional<std::vector<size_t>>& subIndexes = std::nullopt, bool isGlobal = false);
-	StackIndex(Element element, Processor* processor, const std::optional<std::vector<size_t>>& subIndexes = std::nullopt);
+	StackIndex(size_t index, Processor* processor, bool isGlobal = false);
+	StackIndex(Element element, Processor* processor);
+	StackIndex(PreStackIndex preStackIndex, Processor* processor);
+
 	size_t index() const { return index_; }
-	std::optional<std::vector<size_t>> subIndexes() const { return subIndexes_; }
-	bool hasSubIndexes() const { return subIndexes_.has_value(); }
 
 	StackIndex(const StackIndex& other) : index_(other.index_), processor_(other.processor_) {}
 	StackIndex(StackIndex&& other) : index_(other.index_), processor_(other.processor_)
@@ -115,6 +124,7 @@ public:
 
 	bool isValid() const;
 };
+
 
 class Instruction;
 
@@ -145,7 +155,9 @@ public:
 	const std::vector<Instruction>& body() const { return body_; }
 };
 
-typedef std::variant<int64_t, size_t, std::string, void*, Condition, TypeVariant, Function, StackIndex, std::vector<Instruction>> Argument;
+typedef std::variant<int64_t, uint64_t, size_t, std::string, void*, StackIndex, std::vector<Instruction>> Value;
+
+typedef std::variant<Condition, TypeVariant, std::vector<Instruction>, Value> Argument;
 
 
 

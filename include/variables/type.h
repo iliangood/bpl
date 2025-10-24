@@ -151,13 +151,14 @@ public:
 	size_t size() const;
 
 	const std::vector<TypeVariant>& types() const;
+	TypeVariant type(size_t index) const;
 	const std::vector<std::string>& fieldNames() const { return fieldNames_; }
 
 	size_t elementCount() const { return types_.size() + 1; }
 	std::vector<size_t> elementSubIndexes() const;
 	size_t elementSubIndex(size_t index) const;
-	size_t offestBySize(size_t index) const;
-	std::vector<size_t> offestsBySize() const; // Returns offsets of struct and its fields
+	size_t offsetBySize(size_t index) const;
+	std::vector<size_t> offsetsBySize() const; // Returns offsets of struct and its fields
 };
 
 
@@ -169,7 +170,7 @@ public:
 
     using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>::index;
     using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>::operator=;
-	
+
 	bool isValid() const;
 	bool isBaseType() const;
 	bool isStructType() const;

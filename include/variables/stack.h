@@ -66,7 +66,7 @@ public:
 				{
 					if(structSubIndexes[pos] + structType->types()[pos].size() > subIndex)
 					{
-						Element element(ElementInfo("", structType->types()[pos]), pos_ + structType->offestBySize(pos), index_ + structSubIndexes[pos]);
+						Element element(ElementInfo("", structType->types()[pos]), pos_ + structType->offsetBySize(pos), index_ + structSubIndexes[pos]);
 						return element.at(subIndex - structSubIndexes[pos]);
 					}
 					pos += step;
@@ -91,6 +91,8 @@ public:
 
 	std::optional<Element> atSubElements(size_t subIndex)
 	{
+		if(subIndex == 0)
+			return *this;
 		TypeVariant typeV = type();
 		if(typeV.isBaseType() || typeV.isPointerType() || typeV.isFunctionType() || typeV.isStackLinkType())
 		{
@@ -99,7 +101,7 @@ public:
 		if(typeV.isStructType())
 		{
 			const StructType* structType = typeV.get<const StructType*>();
-			return Element(ElementInfo("", structType->types()[subIndex-1]), pos_ + structType->offestBySize(subIndex) , index_ + subIndex);
+			return Element(ElementInfo("", structType->type(subIndex)), pos_ + structType->offsetBySize(subIndex) , index_ + structType->elementSubIndex(subIndex));
 		}
 		if(typeV.isArrayType()) // TODO:
 		{
