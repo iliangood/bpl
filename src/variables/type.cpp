@@ -303,6 +303,15 @@ bool PointerType::operator==(const PointerType& other) const
 
 
 
+bool LinkType::isValid() const
+{
+	if(!isGlobal())
+		return true;
+	return elementType_->isValid();
+}
+
+
+
 ArrayType::ArrayType(TypeVariant elementType, size_t count) : elementType_(new TypeVariant), count_(count) 
 {
 	*elementType_ = elementType;
@@ -620,9 +629,9 @@ bool TypeVariant::isValid() const
 	{
 		return std::get<ArrayType>(*this).isValid();
 	}
-	else if(isStackLinkType())
+	else if(isLinkType())
 	{
-		return std::get<StackLinkType>(*this).isValid();
+		return std::get<LinkType>(*this).isValid();
 	}
 	throw std::runtime_error("TypeVariant::isValid() called on unknown TypeVariant type");
 	return false;
@@ -648,9 +657,9 @@ bool TypeVariant::isArrayType() const
 {
 	return std::holds_alternative<ArrayType>(*this);
 }
-bool TypeVariant::isStackLinkType() const
+bool TypeVariant::isLinkType() const
 {
-	return std::holds_alternative<StackLinkType>(*this);
+	return std::holds_alternative<LinkType>(*this);
 }
 size_t TypeVariant::size() const
 {
@@ -664,25 +673,25 @@ size_t TypeVariant::size() const
 		return std::get<PointerType>(*this).size();
 	else if (isArrayType())
 		return std::get<ArrayType>(*this).size();
-	else if (isStackLinkType())
-		return std::get<StackLinkType>(*this).size();
+	else if (isLinkType())
+		return std::get<LinkType>(*this).size();
 	throw std::runtime_error("TypeVariant::size() called on unknown TypeVariant type");
 	return 0;
 }
 size_t TypeVariant::elementCount() const
 {
 	if (isBaseType())
-		return std::get<const BaseType*>(*this)->elementCount();
+		return get<const BaseType*>()->elementCount();
 	if(isStructType())
-		return std::get<const StructType*>(*this)->elementCount();
+		return get<const StructType*>()->elementCount();
 	else if (isFunctionType())
-		return std::get<FunctionType>(*this).elemetCount();
+		return get<FunctionType>().elemetCount();
 	else if (isPointerType())
-		return std::get<PointerType>(*this).elementCount();
+		return get<PointerType>().elementCount();
 	else if (isArrayType())
-		return std::get<ArrayType>(*this).elementCount();
-	else if (isStackLinkType())
-		return std::get<StackLinkType>(*this).elementCount();
+		return get<ArrayType>().elementCount();
+	else if (isLinkType())
+		return get<LinkType>().elementCount();
 	throw std::runtime_error("TypeVariant::elementCount() called on unknown TypeVariant type");
 	return 0;
 }

@@ -90,14 +90,17 @@ public:
 	std::vector<size_t> elementSubIndexes() const { return {0}; }
 };
 
-class StackLinkType
+class LinkType // ! Доделать этот класс
 {
+	std::unique_ptr<TypeVariant> elementType_;
 public:
-	size_t size() const { return sizeof(size_t); }
-	bool isValid() const { return true; }
+	size_t size() const { return sizeof(std::variant<size_t, uint8_t*>); }
+	bool isGlobal() const { return elementType_ != nullptr; }
+	bool isValid() const;
 
-	bool operator==(const StackLinkType&) const { return true; }
-	bool operator!=(const StackLinkType& other) const { return !(*this == other); }
+
+	bool operator==(const LinkType&) const { return true; }
+	bool operator!=(const LinkType& other) const { return !(*this == other); }
 
 	size_t elementCount() const { return 1; }
 	std::vector<size_t> elementSubIndexes() const { return {0}; }
@@ -163,13 +166,13 @@ public:
 
 
 
-class TypeVariant : public std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>
+class TypeVariant : public std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, LinkType>
 {
 public:
-    using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>::variant;
+    using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, LinkType>::variant;
 
-    using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>::index;
-    using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, StackLinkType>::operator=;
+    using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, LinkType>::index;
+    using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, LinkType>::operator=;
 
 	bool isValid() const;
 	bool isBaseType() const;
@@ -177,7 +180,7 @@ public:
 	bool isPointerType() const;
 	bool isFunctionType() const;
 	bool isArrayType() const;
-	bool isStackLinkType() const;
+	bool isLinkType() const;
 	size_t size() const;
 	size_t elementCount() const;
 	
