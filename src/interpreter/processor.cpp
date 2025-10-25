@@ -64,13 +64,13 @@ stack_(this, stackSize), finished_(false), returningFromFunction_(false)
 	baseTypes_[BaseTypeId::void_] = BaseType("void", 0);
 }
 
-void Processor::functionEntry() // ! Перепроверить на то, что соотносится другим кодом
+void Processor::functionEntry() // ! TODO: Переделать
 {
 	functionStackStartPositions_.push_back(stack_.elementCount());
 	stack_.newLevel();
 }
 
-void Processor::functionExit() // ! Перепроверить на то, что соотносится другим кодом
+void Processor::functionExit() // ! TODO: Переделать
 {
 	if(functionStackStartPositions_.empty())
 		throw std::runtime_error("Processor::functionExit() no function to exit from");

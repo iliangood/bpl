@@ -99,7 +99,7 @@ class StackIndex
 public:
 	StackIndex(size_t index, Processor* processor, bool isGlobal = false);
 	StackIndex(Element element, Processor* processor);
-	StackIndex(PreStackIndex preStackIndex, Processor* processor);
+	StackIndex(PreStackIndex preStackIndex, Processor* processor) : StackIndex(preStackIndex.index(), processor, preStackIndex.isGlobal()) {}
 
 	size_t index() const { return index_; }
 
@@ -115,6 +115,7 @@ public:
 		index_ = other.index_;
 		return *this;
 	}
+	
 	StackIndex& operator=(StackIndex&& other)
 	{
 		index_ = other.index_;
@@ -155,7 +156,7 @@ public:
 	const std::vector<Instruction>& body() const { return body_; }
 };
 
-typedef std::variant<int64_t, uint64_t, size_t, std::string, void*, StackIndex, std::vector<Instruction>> Value;
+typedef std::variant<int64_t, uint64_t, std::string, void*, PreStackIndex, std::vector<Instruction>> Value;
 
 typedef std::variant<Condition, TypeVariant, std::vector<Instruction>, Value> Argument;
 

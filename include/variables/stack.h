@@ -103,9 +103,15 @@ public:
 			const StructType* structType = typeV.get<const StructType*>();
 			return Element(ElementInfo("", structType->type(subIndex)), pos_ + structType->offsetBySize(subIndex) , index_ + structType->elementSubIndex(subIndex));
 		}
-		if(typeV.isArrayType()) // TODO:
+		if(typeV.isArrayType())
 		{
-
+			ArrayType arrayType = typeV.get<ArrayType>();
+			if(subIndex > arrayType.count())
+				throw std::out_of_range("Element::atSubElements(size_t) out of range");
+			TypeVariant elementType = arrayType.elementType();
+			size_t elementSize = elementType.size();
+			size_t elementsInElement = elementType.elementCount();
+			return Element(ElementInfo("", elementType), pos_ + elementSize*(subIndex-1), index_ + 1 + elementsInElement*(subIndex-1));
 		}
 		throw std::runtime_error("Element::atSubElements(size_t) called on unsupported TypeVariant type");
 	}
@@ -143,6 +149,9 @@ public:
 	
 	std::optional<Element> element(size_t index) const;
 	std::optional<Element> elementFromEnd(size_t index) const;
+
+	std::optional<Element> wholeElement(size_t index) const;
+	std::optional<Element> wholeElementFromEnd(size_t index) const;
 
 	std::optional<size_t> find(std::string name);
 
