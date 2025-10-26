@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28.3)
-project(ngl)
+project(bpl)
 
 add_compile_options(-std=c++17 -Wall -Wextra -Wpedantic)
 
@@ -15,7 +15,7 @@ add_library(variables STATIC src/variables/type.cpp)
 
 target_link_libraries(interpreter variables stack utils)
 
-add_executable(ngl src/ngl.cpp)
+add_executable(bpl src/bpl.cpp)
 
 enable_testing()
 add_subdirectory(tests)

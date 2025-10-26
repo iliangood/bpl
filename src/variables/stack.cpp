@@ -38,7 +38,9 @@ uint8_t* Stack::push(const Element& element)
 
 void Stack::pop()
 {
-	if (elements_.back().size() > top_)
+	if(elements_.empty())
+		throw std::runtime_error("Stack::pop() Stack is empty");
+	if(elements_.back().size() > top_)
 		throw std::runtime_error("Stack::pop() Incorrect Stack: elements_.back().size() > top_");
 	top_ -= elements_.back().size();
 	elementCounter_ -= elements_.back().elementCount();
