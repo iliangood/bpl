@@ -169,10 +169,10 @@ void Stack::popLevel()
 	if(levels_.empty())
 		throw std::runtime_error("Stack::popLevel() No level to pop");
 	size_t count = levels_.back();
+	pop(count);
 	levels_.pop_back();
 	if(count > elements_.size())
 		throw std::runtime_error("Stack::popLevel() Incorrect Stack: count > elements_.size()");
-	pop(count);
 	return;
 }
 
