@@ -15,8 +15,7 @@ enum class OpCode
 
 	call_,
 	ret_,
-
-	scopeRet_,
+	
 	init_,
 	mov_,
 
@@ -36,6 +35,7 @@ enum class OpCode
 
 	stackRealloc_,
 
+	printCh_,
 	print_,
 	scan_,
 
@@ -58,7 +58,6 @@ enum class BaseTypeId
 	int64_ = 0,
 	uint64_,
 	char_,
-	size_,
 	double_,
 	void_,
 	countOfBaseTypes

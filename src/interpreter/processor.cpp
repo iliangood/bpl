@@ -63,21 +63,20 @@ Processor::Processor(const std::vector<Instruction>& program, size_t stackSize) 
 stack_(this, stackSize), FunctionReturnValues_(this, 1024), finished_(false), returningFromFunction_(false)
 {
 	baseTypes_.resize(BaseTypeId::countOfBaseTypes);
-	baseTypes_[BaseTypeId::int64_] = BaseType("int64_t", sizeof(int64_t));
-	baseTypes_[BaseTypeId::uint64_] = BaseType("uint64_t", sizeof(uint64_t));
+	baseTypes_[BaseTypeId::int64_] = BaseType("int64", sizeof(int64_t));
+	baseTypes_[BaseTypeId::uint64_] = BaseType("uint64", sizeof(uint64_t));
 	baseTypes_[BaseTypeId::char_] = BaseType("char", sizeof(char));
-	baseTypes_[BaseTypeId::size_] = BaseType("size", sizeof(size_t));
 	baseTypes_[BaseTypeId::double_] = BaseType("double", sizeof(double));
 	baseTypes_[BaseTypeId::void_] = BaseType("void", 0);
 }
 
-void Processor::functionEntry() // ! TODO: Переделать
+void Processor::functionEntry() 
 {
 	functionStackStartPositions_.push_back(stack_.elementCount());
 	stack_.newLevel();
 }
 
-void Processor::functionExit() // ! TODO: Переделать
+void Processor::functionExit()
 {
 	if(functionStackStartPositions_.empty())
 		throw std::runtime_error("Processor::functionExit() no function to exit from");
@@ -85,20 +84,13 @@ void Processor::functionExit() // ! TODO: Переделать
 	stack_.popLevel();
 }
 
-std::optional<int64_t> Processor::end_(Instruction&& instruction)
+std::optional<int64_t> Processor::end_(Instruction&& instruction) // ! Переделать
 {
 	finished_ = true;
 	if(instruction.arguments().size() == 0)
 		return 0;
 	if(instruction.arguments().size() == 1)
 	{
-		// Argument may contain a Value variant which in turn may hold int64_t
-		const Argument& arg = instruction.arguments()[0];
-		if (std::holds_alternative<Value>(arg)) {
-			const Value& v = std::get<Value>(arg);
-			if (std::holds_alternative<int64_t>(v))
-				return std::get<int64_t>(v);
-		}
 	}
 	throw std::runtime_error("Invalid end instruction");
 }
@@ -123,9 +115,6 @@ std::optional<int64_t> Processor::execute(Instruction instruction)
 		break;
 	case OpCode::ret_:
 		return ret_(std::move(instruction));
-		break;
-	case OpCode::scopeRet_:
-		return scopeRet_(std::move(instruction));
 		break;
 	case OpCode::init_:
 		return init_(std::move(instruction));
