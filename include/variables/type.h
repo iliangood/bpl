@@ -94,9 +94,18 @@ class LinkType // ! Доделать этот класс
 {
 	std::unique_ptr<TypeVariant> elementType_;
 public:
+	LinkType(TypeVariant elementType);
+	LinkType();
+	LinkType(LinkType& other);
+	LinkType(LinkType&& other);
+
+	LinkType operator=(LinkType& other);
+	LinkType operator=(LinkType&& other);
+	
+	bool isValid() const;
+
 	size_t size() const { return sizeof(std::variant<size_t, uint8_t*>); }
 	bool isGlobal() const { return elementType_ != nullptr; }
-	bool isValid() const;
 
 
 	bool operator==(const LinkType&) const { return true; }
@@ -112,10 +121,10 @@ class ArrayType
 	size_t count_;
 public:
 	ArrayType(TypeVariant elementType, size_t count);
-	ArrayType(ArrayType&&);
-	ArrayType(const ArrayType&);
-	ArrayType& operator=(ArrayType&&);
-	ArrayType& operator=(const ArrayType&);
+	ArrayType(ArrayType&& other);
+	ArrayType(const ArrayType& other);
+	ArrayType& operator=(ArrayType&& other);
+	ArrayType& operator=(const ArrayType& other);
 
 	bool isValid() const;
 
@@ -168,11 +177,55 @@ public:
 
 class TypeVariant : public std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, LinkType>
 {
-public:
-    using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, LinkType>::variant;
+private:
+	using Base = std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, LinkType>;
+	
+	template<typename T>
+	void assign(const T& value) {
+		static_cast<Base&>(*this) = value;
+	}
 
-    using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, LinkType>::index;
-    using std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, LinkType>::operator=;
+	void copyFrom(const TypeVariant& other)
+	{
+		if(std::holds_alternative<const BaseType*>(other))
+			assign(std::get<const BaseType*>(other));
+		else if(std::holds_alternative<const StructType*>(other))
+			assign(std::get<const StructType*>(other));
+		else if(std::holds_alternative<FunctionType>(other))
+			assign(std::get<FunctionType>(other));
+		else if(std::holds_alternative<PointerType>(other))
+			assign(std::get<PointerType>(other));
+		else if(std::holds_alternative<ArrayType>(other))
+			assign(std::get<ArrayType>(other));
+		else if(std::holds_alternative<LinkType>(other))
+			assign(std::get<LinkType>(other));
+		else
+			throw std::runtime_error("void TypeVariant::copyFrom(const TypeVariant&) called on unknow TypeVariant");
+	}
+
+public:
+	TypeVariant() = default;
+	
+	template<typename T>
+	TypeVariant(const T& value)
+	{
+		assign(value);
+	}
+	
+	TypeVariant(const TypeVariant& other) : Base()
+	{
+		copyFrom(other);
+	}
+	
+	TypeVariant& operator=(const TypeVariant& other)
+	{
+		if (this != &other) 
+			copyFrom(other);
+		return *this;
+	}
+
+	TypeVariant(TypeVariant&& other) noexcept = default;
+	TypeVariant& operator=(TypeVariant&& other) noexcept = default;
 
 	bool isValid() const;
 	bool isBaseType() const;
@@ -188,12 +241,13 @@ public:
 	bool operator==(const TypeVariant& other) const;
 
 	template<typename T>
-	T& get()
+	T& get() 
 	{
 		return std::get<T>(*this);
 	}
+	
 	template<typename T>
-	const T& get() const
+	const T& get() const 
 	{
 		return std::get<T>(*this);
 	}

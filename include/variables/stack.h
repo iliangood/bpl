@@ -44,7 +44,7 @@ public:
 		if(subIndex >= elementCount())
 			return std::nullopt;
 		TypeVariant typeV = type();
-		if(typeV.isBaseType() || typeV.isPointerType() || typeV.isFunctionType() || typeV.isStackLinkType())
+		if(typeV.isBaseType() || typeV.isPointerType() || typeV.isFunctionType() || typeV.isLinkType())
 		{
 			return std::nullopt;
 		}
@@ -94,7 +94,7 @@ public:
 		if(subIndex == 0)
 			return *this;
 		TypeVariant typeV = type();
-		if(typeV.isBaseType() || typeV.isPointerType() || typeV.isFunctionType() || typeV.isStackLinkType())
+		if(typeV.isBaseType() || typeV.isPointerType() || typeV.isFunctionType() || typeV.isLinkType())
 		{
 			return std::nullopt;
 		}

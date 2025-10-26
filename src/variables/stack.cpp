@@ -16,17 +16,17 @@ Stack::~Stack()
 
 uint8_t* Stack::push(const ElementInfo& element, bool initAfterPush)
 {
-	if (top_ + element.size() > capacity_)
+	size_t elementSize = element.size();
+	if (top_ + elementSize > capacity_)
 		resize((top_ + element.size()) * 2);
 
-	elements_.push_back(Element(element, top_));
+	elements_.push_back(Element(element, top_, elementCounter_));
 	if(cleanStackBeforeUse_ && !initAfterPush)
-		memset(data_ + top_, 0, element.size());
-	top_ += element.size();
+		memset(data_ + top_, 0, elementSize);
+	top_ += elementSize;
 	++levels_.back();
-	elements_.back().setIndex(elementCounter_);
 	elementCounter_ += element.elementCount();
-	return data_ + top_ - element.size();
+	return data_ + top_ - elementSize;
 }
 
 uint8_t* Stack::push(const Element& element)
@@ -43,6 +43,8 @@ void Stack::pop()
 	top_ -= elements_.back().size();
 	elementCounter_ -= elements_.back().elementCount();
 	elements_.pop_back();
+	if(levels_.back() == 0)
+		levels_.pop_back();
 	--levels_.back();
 }
 

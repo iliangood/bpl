@@ -303,9 +303,48 @@ bool PointerType::operator==(const PointerType& other) const
 
 
 
+LinkType::LinkType(TypeVariant elementType)
+{
+	elementType_ = std::make_unique<TypeVariant>(elementType);
+}
+
+LinkType::LinkType()
+{
+}
+
+LinkType::LinkType(LinkType& other)
+{
+	if(other.elementType_ == nullptr)
+	{	
+		elementType_ = nullptr;
+		return;
+	}
+	elementType_ = std::make_unique<TypeVariant>(*other.elementType_);
+}
+LinkType::LinkType(LinkType&& other)
+{
+	elementType_ = std::move(other.elementType_);
+}
+
+LinkType LinkType::operator=(LinkType& other)
+{
+	if(other.elementType_ == nullptr)
+	{	
+		elementType_ = nullptr;
+		return *this;
+	}
+	elementType_ = std::make_unique<TypeVariant>(*other.elementType_);
+	return *this;
+}
+LinkType LinkType::operator=(LinkType&& other)
+{
+	elementType_ = std::move(other.elementType_);
+	return *this;
+}
+
 bool LinkType::isValid() const
 {
-	if(!isGlobal())
+	if(elementType_ == nullptr)
 		return true;
 	return elementType_->isValid();
 }

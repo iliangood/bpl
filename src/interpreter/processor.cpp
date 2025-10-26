@@ -43,17 +43,24 @@ Function::Function(StackIndex index, Processor* processor) : processor_(processo
 		throw std::invalid_argument("Function::Function(StackIndex, Processor*) null Processor pointer");
 	if(!index.isValid())
 		throw std::invalid_argument("Function::Function(StackIndex, Processor*) invalid StackIndex");
-	Element funcElement = processor_->stack_.element(index.index());
+	auto optFuncElement = processor_->stack_.element(index.index());
+	if(!optFuncElement.has_value())
+		throw std::invalid_argument("Function::Function(StackIndex, Processor*) invalid stack element");
+	Element funcElement = *optFuncElement;
 	if(!funcElement.type().isFunctionType())
 		throw std::invalid_argument("Function::Function(StackIndex, Processor*) index does not point to a FunctionType");
 	type_ = std::get<FunctionType>(funcElement.type());
-	body_ = *reinterpret_cast<std::vector<Instruction>*>(processor_->stack_.at(funcElement.pos()));
+	auto optPtr = processor_->stack_.at(funcElement.pos());
+	if(!optPtr.has_value())
+		throw std::invalid_argument("Function::Function(StackIndex, Processor*) function body pointer not found on stack");
+	auto ptr = reinterpret_cast<std::vector<Instruction>*>(*optPtr);
+	body_ = *ptr;
 }
 
 
 
 Processor::Processor(const std::vector<Instruction>& program, size_t stackSize) : programm_(program),
-stack_(this, stackSize), finished_(false), returningFromFunction_(false)
+stack_(this, stackSize), FunctionReturnValues_(this, 1024), finished_(false), returningFromFunction_(false)
 {
 	baseTypes_.resize(BaseTypeId::countOfBaseTypes);
 	baseTypes_[BaseTypeId::int64_] = BaseType("int64_t", sizeof(int64_t));
@@ -85,8 +92,13 @@ std::optional<int64_t> Processor::end_(Instruction&& instruction)
 		return 0;
 	if(instruction.arguments().size() == 1)
 	{
-		if(std::holds_alternative<int64_t>(instruction.arguments()[0]))
-			return std::get<int64_t>(instruction.arguments()[0]);
+		// Argument may contain a Value variant which in turn may hold int64_t
+		const Argument& arg = instruction.arguments()[0];
+		if (std::holds_alternative<Value>(arg)) {
+			const Value& v = std::get<Value>(arg);
+			if (std::holds_alternative<int64_t>(v))
+				return std::get<int64_t>(v);
+		}
 	}
 	throw std::runtime_error("Invalid end instruction");
 }
