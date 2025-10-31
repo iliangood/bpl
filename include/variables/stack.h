@@ -15,13 +15,13 @@ class Processor;
 
 class ElementInfo
 {
-	std::string name_;
+	//std::string name_;
 	TypeVariant type_;
 public:
-	ElementInfo(std::string name, TypeVariant type) : name_(name), type_(type) {}
+	ElementInfo(/*std::string name, */TypeVariant type) : /*name_(name),*/ type_(type) {}
 	size_t size() const { return type_.size(); }
 	TypeVariant type() const { return type_; }
-	std::string name() const { return name_; }
+	//std::string name() const { return name_; }
 	size_t elementCount() const { return type_.elementCount(); }
 };
 
@@ -66,14 +66,14 @@ public:
 				{
 					if(structSubIndexes[pos] + structType->types()[pos].size() > subIndex)
 					{
-						Element element(ElementInfo("", structType->types()[pos]), pos_ + structType->offsetBySize(pos), index_ + structSubIndexes[pos]);
+						Element element(ElementInfo(/*"", */structType->types()[pos]), pos_ + structType->offsetBySize(pos), index_ + structSubIndexes[pos]);
 						return element.at(subIndex - structSubIndexes[pos]);
 					}
 					pos += step;
 				}
 				step /= 2;
 			}
-			return Element(ElementInfo("", structType->types()[pos]), pos_, subIndex);
+			return Element(ElementInfo(/*"", */structType->types()[pos]), pos_, subIndex);
 		}
 		else if(typeV.isArrayType())
 		{
@@ -83,7 +83,7 @@ public:
 			size_t elementIndex = (subIndex - 1) % elementSize;
 			if(arrayIndex >= arrayType.count())
 				return std::nullopt;
-			Element element(ElementInfo("", arrayType.elementType()), pos_ + arrayIndex * arrayType.elementType().size());
+			Element element(ElementInfo(/*"", */arrayType.elementType()), pos_ + arrayIndex * arrayType.elementType().size());
 			return element.at(elementIndex);
 		}
 		throw std::runtime_error("Element::at(size_t) called on unsupported TypeVariant type");
@@ -101,7 +101,7 @@ public:
 		if(typeV.isStructType())
 		{
 			const StructType* structType = typeV.get<const StructType*>();
-			return Element(ElementInfo("", structType->type(subIndex)), pos_ + structType->offsetBySize(subIndex) , index_ + structType->elementSubIndex(subIndex));
+			return Element(ElementInfo(/*"", */structType->type(subIndex)), pos_ + structType->offsetBySize(subIndex) , index_ + structType->elementSubIndex(subIndex));
 		}
 		if(typeV.isArrayType())
 		{
@@ -111,7 +111,7 @@ public:
 			TypeVariant elementType = arrayType.elementType();
 			size_t elementSize = elementType.size();
 			size_t elementsInElement = elementType.elementCount();
-			return Element(ElementInfo("", elementType), pos_ + elementSize*(subIndex-1), index_ + 1 + elementsInElement*(subIndex-1));
+			return Element(ElementInfo(/*"", */elementType), pos_ + elementSize*(subIndex-1), index_ + 1 + elementsInElement*(subIndex-1));
 		}
 		throw std::runtime_error("Element::atSubElements(size_t) called on unsupported TypeVariant type");
 	}
@@ -153,7 +153,7 @@ public:
 	std::optional<Element> wholeElement(size_t index) const;
 	std::optional<Element> wholeElementFromEnd(size_t index) const;
 
-	std::optional<size_t> find(std::string name);
+	//std::optional<size_t> find(std::string name);
 
 	std::vector<Element>& elements() { return elements_; }
 	size_t elementCount() { return elementCounter_; }
@@ -174,6 +174,9 @@ public:
 
 	std::optional<uint8_t*> at(size_t index);
 	std::optional<const uint8_t*> at(size_t index) const;
+
+	std::optional<uint8_t*> atWhole(size_t index);
+	std::optional<const uint8_t*> atWhole(size_t index) const;
 
 	std::optional<uint8_t*> operator[](size_t index) { return at(index); }
 	std::optional<const uint8_t*> operator[](size_t index) const { return at(index);}

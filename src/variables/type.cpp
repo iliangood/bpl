@@ -612,7 +612,7 @@ const std::vector<std::string>& FunctionType::argumentNames() const
 
 size_t FunctionType::size() const 
 {
-	return sizeof(std::vector<Instruction>);
+	return sizeof(std::vector<Instruction>*);
 }
 
 bool FunctionType::operator==(const FunctionType& other) const

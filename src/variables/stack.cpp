@@ -110,6 +110,22 @@ std::optional<const uint8_t*> Stack::at(size_t index) const
 	return data_ + elem->pos();
 }
 
+std::optional<uint8_t*> Stack::atWhole(size_t index)
+{
+	std::optional<Element> elem = wholeElement(index);
+	if(!elem.has_value())
+		return std::nullopt;
+	return data_ + elem->pos();
+}
+
+std::optional<const uint8_t*> Stack::atWhole(size_t index) const
+{
+	std::optional<Element> elem = wholeElement(index);
+	if(!elem.has_value())
+		return std::nullopt;
+	return data_ + elem->pos();
+}
+
 std::optional<uint8_t*> Stack::atFromEnd(size_t index)
 {
 	return at(elementCounter_ - 1 - index);
@@ -132,7 +148,7 @@ std::optional<Element> Stack::wholeElement(size_t index) const
 	return elements_[index];
 }
 
-std::optional<size_t> Stack::find(std::string name)
+/*std::optional<size_t> Stack::find(std::string name)
 {
 	for(ssize_t i = elements_.size() - 1; i >= 0;++i)
 	{
@@ -140,7 +156,7 @@ std::optional<size_t> Stack::find(std::string name)
 			return i;
 	}
 	return std::nullopt;
-}
+}*/
 
 void Stack::resize(size_t new_capacity)
 {

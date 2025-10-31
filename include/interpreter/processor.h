@@ -205,38 +205,38 @@ class Processor
 	void functionExit();
 
 
-	std::optional<int64_t> end_(Instruction&& instruction);
+	std::optional<int64_t> end_(Instruction& instruction);
 
-	std::optional<int64_t> call_(Instruction&& instruction);
-	std::optional<int64_t> ret_(Instruction&& instruction);
+	std::optional<int64_t> call_(Instruction& instruction);
+	std::optional<int64_t> ret_(Instruction& instruction);
 
-	std::optional<int64_t> scopeRet_(Instruction&& instruction);
-	std::optional<int64_t> init_(Instruction&& instruction);
-	std::optional<int64_t> mov_(Instruction&& instruction);
+	std::optional<int64_t> scopeRet_(Instruction& instruction);
+	std::optional<int64_t> init_(Instruction& instruction);
+	std::optional<int64_t> mov_(Instruction& instruction);
 
-	std::optional<int64_t> if_(Instruction&& instruction);
-	std::optional<int64_t> while_(Instruction&& instruction);
+	std::optional<int64_t> if_(Instruction& instruction);
+	std::optional<int64_t> while_(Instruction& instruction);
 
-	std::optional<int64_t> add_(Instruction&& instruction);
-	std::optional<int64_t> sub_(Instruction&& instruction);
-	std::optional<int64_t> mul_(Instruction&& instruction);
-	std::optional<int64_t> div_(Instruction&& instruction);
-	std::optional<int64_t> mod_(Instruction&& instruction);
-	std::optional<int64_t> and_(Instruction&& instruction);
-	std::optional<int64_t> or_(Instruction&& instruction);
-	std::optional<int64_t> not_(Instruction&& instruction);
-	std::optional<int64_t> shl_(Instruction&& instruction);
-	std::optional<int64_t> shr_(Instruction&& instruction);
+	std::optional<int64_t> add_(Instruction& instruction);
+	std::optional<int64_t> sub_(Instruction& instruction);
+	std::optional<int64_t> mul_(Instruction& instruction);
+	std::optional<int64_t> div_(Instruction& instruction);
+	std::optional<int64_t> mod_(Instruction& instruction);
+	std::optional<int64_t> and_(Instruction& instruction);
+	std::optional<int64_t> or_(Instruction& instruction);
+	std::optional<int64_t> not_(Instruction& instruction);
+	std::optional<int64_t> shl_(Instruction& instruction);
+	std::optional<int64_t> shr_(Instruction& instruction);
 
-	std::optional<int64_t> stackRealloc_(Instruction&& instruction);
+	std::optional<int64_t> stackRealloc_(Instruction& instruction);
 
-	std::optional<int64_t> print_(Instruction&& instruction);
-	std::optional<int64_t> scan_(Instruction&& instruction);
+	std::optional<int64_t> print_(Instruction& instruction);
+	std::optional<int64_t> scan_(Instruction& instruction);
 
-	std::optional<int64_t> cmp_(Instruction&& instruction);
+	std::optional<int64_t> cmp_(Instruction& instruction);
 	
 
-	std::optional<int64_t> execute(Instruction instruction);
+	std::optional<int64_t> execute(Instruction& instruction);
 
 	bool returningFromFunction() const { return returningFromFunction_; }
 	public:

@@ -84,7 +84,7 @@ void Processor::functionExit()
 	stack_.popLevel();
 }
 
-std::optional<int64_t> Processor::end_(Instruction&& instruction) // ! Переделать
+std::optional<int64_t> Processor::end_(Instruction& instruction) // ! Переделать
 {
 	finished_ = true;
 	if(instruction.arguments().size() == 0)
@@ -95,11 +95,50 @@ std::optional<int64_t> Processor::end_(Instruction&& instruction) // ! Пере�
 	throw std::runtime_error("Invalid end instruction");
 }
 
-std::optional<int64_t> Processor::call_(Instruction&& instruction)
+std::optional<int64_t> Processor::call_(Instruction& instruction)
 {
+	std::optional<Element> lastElemOpt = stack_.wholeElementFromEnd(0);
+	if(!lastElemOpt.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&&) called on incorrect stack stack_.wholeElementFromEnd(0) hasn't value");
+	Element lastElem = lastElemOpt.value();
+	if(!lastElem.type().isFunctionType())
+		throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&&) called on non-function last stack element");
+	FunctionType func = lastElem.type().get<FunctionType>(); 
+	const std::vector<TypeVariant>& args = func.argumentsTypes();
+	if(getValidationLevel() >= ValidationLevel::light)
+	{
+		for(size_t i = 0; i < args.size(); ++i)
+		{
+			std::optional<Element> we = stack_.wholeElementFromEnd(i+1);
+			if(!we.has_value())
+			{
+				throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&&) function called on invalid arguments");
+			}
+			if(args[i] != we.value().type())
+			{
+				throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&&) function called on invalid arguments");
+			}
+		}
+	}
+	std::optional<uint8_t*> elemPtr = stack_.atWhole(lastElem.index());
+	if(!elemPtr.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&&) can get element pointer");
+	std::vector<Instruction>& body = *reinterpret_cast<std::vector<Instruction>*>(elemPtr.value());
+	for(Instruction& inst : body)
+	{
+		execute(inst);
+		if(returningFromFunction_)
+		{
+			returningFromFunction_ = false;
+			functionExit();
+			stack_.push(func.returnType());
+			// TODO: Нужно записывать значение, которое было выставленно через ret_
+			break;
+		}
+	}
 
 }
-std::optional<int64_t> Processor::execute(Instruction instruction)
+std::optional<int64_t> Processor::execute(Instruction& instruction)
 {
 	if(finished())
 	{
@@ -108,67 +147,67 @@ std::optional<int64_t> Processor::execute(Instruction instruction)
 	switch (instruction.opCode())
 	{
 	case OpCode::end_:
-		return end_(std::move(instruction));
+		return end_(instruction);
 		break;
 	case OpCode::call_:
-		return call_(std::move(instruction));
+		return call_(instruction);
 		break;
 	case OpCode::ret_:
-		return ret_(std::move(instruction));
+		return ret_(instruction);
 		break;
 	case OpCode::init_:
-		return init_(std::move(instruction));
+		return init_(instruction);
 		break;
 	case OpCode::mov_:
-		return mov_(std::move(instruction));
+		return mov_(instruction);
 		break;
 	case OpCode::if_:
-		return if_(std::move(instruction));
+		return if_(instruction);
 		break;
 	case OpCode::while_:
-		return while_(std::move(instruction));
+		return while_(instruction);
 		break;
 	case OpCode::add_:
-		return add_(std::move(instruction));
+		return add_(instruction);
 		break;
 	case OpCode::sub_:
-		return sub_(std::move(instruction));
+		return sub_(instruction);
 		break;
 	case OpCode::mul_:
-		return mul_(std::move(instruction));
+		return mul_(instruction);
 		break;
 	case OpCode::div_:
-		return div_(std::move(instruction));
+		return div_(instruction);
 		break;
 	case OpCode::mod_:
-		return mod_(std::move(instruction));
+		return mod_(instruction);
 		break;
 	case OpCode::and_:
-		return and_(std::move(instruction));
+		return and_(instruction);
 		break;
 	case OpCode::or_:
-		return or_(std::move(instruction));
+		return or_(instruction);
 		break;
 	case OpCode::not_:
-		return not_(std::move(instruction));
+		return not_(instruction);
 		break;
 	case OpCode::shl_:
-		return shl_(std::move(instruction));
+		return shl_(instruction);
 		break;
 	case OpCode::shr_:
-		return shr_(std::move(instruction));;
+		return shr_(instruction);;
 		break;
 	case OpCode::stackRealloc_:
-		return stackRealloc_(std::move(instruction));
+		return stackRealloc_(instruction);
 		break;
 	case OpCode::print_:
-		return print_(std::move(instruction));
+		return print_(instruction);
 		break;
 	case OpCode::scan_:
-		return scan_(std::move(instruction));
+		return scan_(instruction);
 		break;
 	case OpCode::cmp_:
-		return cmp_(std::move(instruction));
+		return cmp_(instruction);
 		break;
 	default:
 		break;
@@ -178,7 +217,7 @@ std::optional<int64_t> Processor::execute(Instruction instruction)
 
 void Processor::notifyStackReallocation(uint8_t* /*new_data*/) // Currently does nothing
 {
-	execute(Instruction(OpCode::stackRealloc_, {}));
+	//execute(Instruction(OpCode::stackRealloc_, {}));
 }
 
 bool Processor::finished() { return finished_; }
