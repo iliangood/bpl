@@ -17,7 +17,9 @@ enum class OpCode
 	ret_,
 	
 	init_,
-	mov_,
+	get_, // get value from StackLink
+	set_, // set value by StackLink
+	valfromstlink, // value from StackLink
 
 	if_,
 	while_,
@@ -212,7 +214,9 @@ class Processor
 
 	std::optional<int64_t> scopeRet_(Instruction& instruction);
 	std::optional<int64_t> init_(Instruction& instruction);
-	std::optional<int64_t> mov_(Instruction& instruction);
+	std::optional<int64_t> get_(Instruction& instruction);
+	std::optional<int64_t> set_(Instruction& instruction);
+	std::optional<int64_t> valfromstlink(Instruction& instruction);
 
 	std::optional<int64_t> if_(Instruction& instruction);
 	std::optional<int64_t> while_(Instruction& instruction);

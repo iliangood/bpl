@@ -152,6 +152,17 @@ std::optional<int64_t> Processor::ret_(Instruction&)
 	return 0;
 }
 
+std::optional<int64_t> Processor::init_(Instruction& instruction)
+{
+	std::vector<Argument>& args = instruction.arguments();
+	if(args.size() != 1)
+		throw std::runtime_error("std::optional<int64_t> Processor::init_(Instruction&) init_ called with invalid arguments count");
+	if(!std::holds_alternative<TypeVariant>(args[0]))
+		throw std::runtime_error("std::optional<int64_t> Processor::init_(Instruction&) init_ called with invalid argument");
+	stack_.push(ElementInfo(std::get<TypeVariant>(args[0])));
+	return 0;
+}
+
 
 std::optional<int64_t> Processor::execute(Instruction& instruction)
 {
@@ -173,7 +184,7 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 	case OpCode::init_:
 		return init_(instruction);
 		break;
-	case OpCode::mov_:
+	case OpCode::mov_: // TODO: переделать
 		return mov_(instruction);
 		break;
 	case OpCode::if_:
