@@ -175,9 +175,38 @@ std::optional<int64_t> Processor::get_(Instruction& instruction)
 	if(!elemOpt.has_value())
 		throw std::runtime_error("std::optional<int64_t> Processor::get_(Instruction&) can't get element");
 	Element elem = elemOpt.value();
-	std::variant<size_t, uint8_t*> elemPos = elem.index();
+	Link elemPos = elem.index();
+	uint8_t* elemPosD = stack_.push(ElementInfo(LinkType()));
+	memcpy(elemPosD, &elem, sizeof(Link));
+	return 0;
 }
 
+std::optional<int64_t> Processor::set_(Instruction&)
+{
+	std::optional<Element> valueElemOpt = stack_.wholeElementFromEnd(0);
+	std::optional<Element> linkElemOpt = stack_.wholeElementFromEnd(1);
+	if(!valueElemOpt.has_value() || !linkElemOpt.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::set_(Instruction&) called on invalid arguments in stack");
+	Element valueElem = valueElemOpt.value();
+	Element linkElem = linkElemOpt.value();
+	if(!linkElem.type().isLinkType())
+		throw std::runtime_error("std::optional<int64_t> Processor::set_(Instruction&) called on invalid link argument");
+	Link* linkElemPos = reinterpret_cast<Link*>(stack_.at(linkElem));
+	size_t linkDataSize;
+	uint8_t* linkDataPtr;
+	if(std::holds_alternative<uint8_t*>(*linkElemPos))
+	{
+		linkDataPtr = std::get<uint8_t*>(*linkElemPos);
+	}
+	else // size_t
+	{
+		std::optional<Element> linkedElementOpt = stack_.element(std::get<size_t>(*linkElemPos));
+		if(!linkedElementOpt.has_value())
+			throw std::runtime_error("std::optional<int64_t> Processor::set_(Instruction&) invalid link");
+		Element linkedElement = linkedElementOpt.value();
+		linkDataPtr = stack_.at(linkedElement);
+	}
+}
 
 
 std::optional<int64_t> Processor::execute(Instruction& instruction)
