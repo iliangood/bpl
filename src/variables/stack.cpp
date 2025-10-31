@@ -126,6 +126,15 @@ std::optional<const uint8_t*> Stack::atWhole(size_t index) const
 	return data_ + elem->pos();
 }
 
+std::optional<uint8_t*> Stack::atWholeFromEnd(size_t index)
+{
+	return atWhole(elements_.size() - 1 - index);
+}
+std::optional<const uint8_t*> Stack::atWholeFromEnd(size_t index) const
+{
+	return atWhole(elements_.size() - 1 - index);
+}
+
 std::optional<uint8_t*> Stack::atFromEnd(size_t index)
 {
 	return at(elementCounter_ - 1 - index);

@@ -178,6 +178,9 @@ public:
 	std::optional<uint8_t*> atWhole(size_t index);
 	std::optional<const uint8_t*> atWhole(size_t index) const;
 
+	std::optional<uint8_t*> atWholeFromEnd(size_t index);
+	std::optional<const uint8_t*> atWholeFromEnd(size_t index) const;
+
 	std::optional<uint8_t*> operator[](size_t index) { return at(index); }
 	std::optional<const uint8_t*> operator[](size_t index) const { return at(index);}
 

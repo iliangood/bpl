@@ -95,14 +95,14 @@ std::optional<int64_t> Processor::end_(Instruction& instruction) // ! Перед
 	throw std::runtime_error("Invalid end instruction");
 }
 
-std::optional<int64_t> Processor::call_(Instruction& instruction)
+std::optional<int64_t> Processor::call_(Instruction&)
 {
 	std::optional<Element> lastElemOpt = stack_.wholeElementFromEnd(0);
 	if(!lastElemOpt.has_value())
-		throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&&) called on incorrect stack stack_.wholeElementFromEnd(0) hasn't value");
+		throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&) called on incorrect stack stack_.wholeElementFromEnd(0) hasn't value");
 	Element lastElem = lastElemOpt.value();
 	if(!lastElem.type().isFunctionType())
-		throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&&) called on non-function last stack element");
+		throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&) called on non-function last stack element");
 	FunctionType func = lastElem.type().get<FunctionType>(); 
 	const std::vector<TypeVariant>& args = func.argumentsTypes();
 	if(getValidationLevel() >= ValidationLevel::light)
@@ -112,17 +112,17 @@ std::optional<int64_t> Processor::call_(Instruction& instruction)
 			std::optional<Element> we = stack_.wholeElementFromEnd(i+1);
 			if(!we.has_value())
 			{
-				throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&&) function called on invalid arguments");
+				throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&) function called on invalid arguments");
 			}
 			if(args[i] != we.value().type())
 			{
-				throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&&) function called on invalid arguments");
+				throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&) function called on invalid arguments");
 			}
 		}
 	}
 	std::optional<uint8_t*> elemPtr = stack_.atWhole(lastElem.index());
 	if(!elemPtr.has_value())
-		throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&&) can get element pointer");
+		throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&) can't get element pointer");
 	std::vector<Instruction>& body = *reinterpret_cast<std::vector<Instruction>*>(elemPtr.value());
 	for(Instruction& inst : body)
 	{
@@ -132,12 +132,27 @@ std::optional<int64_t> Processor::call_(Instruction& instruction)
 			returningFromFunction_ = false;
 			functionExit();
 			stack_.push(func.returnType());
-			// TODO: Нужно записывать значение, которое было выставленно через ret_
+			if(returningValue_.size() != func.returnType().size())
+				throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&) invalid return value");
+			memcpy(stack_.atWholeFromEnd(0).value(), returningValue_.data(), returningValue_.size());
 			break;
 		}
 	}
-
+	return 0;
 }
+
+std::optional<int64_t> Processor::ret_(Instruction&)
+{
+	std::optional<Element> lastElemOpt = stack_.elementFromEnd(0);
+	if(!lastElemOpt.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::ret_(Instruction&) called on on incorrect stack");
+	Element lastElem = lastElemOpt.value();
+	returningValue_.resize(lastElem.size());
+	memcpy(returningValue_.data(), stack_.atWholeFromEnd(0).value(), lastElem.size());
+	return 0;
+}
+
+
 std::optional<int64_t> Processor::execute(Instruction& instruction)
 {
 	if(finished())

@@ -200,10 +200,10 @@ class Processor
 	Stack FunctionReturnValues_;
 	bool finished_;
 	bool returningFromFunction_;
+	std::vector<uint8_t> returningValue_;
 
 	void functionEntry();
 	void functionExit();
-
 
 	std::optional<int64_t> end_(Instruction& instruction);
 
