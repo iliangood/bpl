@@ -227,6 +227,43 @@ std::optional<int64_t> Processor::set_(Instruction&)
 	return 0;
 }
 
+std::optional<int64_t> Processor::valfromstlink_(Instruction&)
+{
+	std::optional<Element> elemOpt = stack_.wholeElementFromEnd(0);
+	if(!elemOpt.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::valfromstlink_(Instruction&) called on empty stack");
+	Element elem = elemOpt.value();
+	if(!elem.type().isLinkType())
+		throw std::runtime_error("std::optional<int64_t> Processor::valfromstlink_(Instruction&) last element should be link");
+	Link link = *reinterpret_cast<Link*>(stack_.at(elem));
+	size_t linkDataSize;
+	uint8_t* linkDataPtr;
+	TypeVariant linkType;
+	if(std::holds_alternative<uint8_t*>(link))
+	{
+		linkDataPtr = std::get<uint8_t*>(link);
+		std::optional<TypeVariant> linkTypeOpt = std::get<LinkType>(elem.type()).pointsTo();
+		if(!linkTypeOpt.has_value())
+			throw std::runtime_error("std::optional<int64_t> Processor::set_(Instruction&) called on invalid link pointsTo");
+		linkType = linkTypeOpt.value();
+		linkDataSize = linkType.size();
+	}
+	else // size_t
+	{
+		std::optional<Element> linkedElementOpt = stack_.element(std::get<size_t>(link));
+		if(!linkedElementOpt.has_value())
+			throw std::runtime_error("std::optional<int64_t> Processor::set_(Instruction&) invalid link");
+		Element linkedElement = linkedElementOpt.value();
+		linkType = linkedElement.type();
+		linkDataPtr = stack_.at(linkedElement);
+		linkDataSize = linkedElement.type().size();
+	}
+	stack_.pop();
+	uint8_t* data = stack_.push(ElementInfo(linkType));
+	memcpy(data, linkDataPtr, linkDataSize);
+	return 0;
+}
+
 
 std::optional<int64_t> Processor::execute(Instruction& instruction)
 {
