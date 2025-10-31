@@ -143,7 +143,7 @@ std::optional<int64_t> Processor::call_(Instruction&)
 
 std::optional<int64_t> Processor::ret_(Instruction&)
 {
-	std::optional<Element> lastElemOpt = stack_.elementFromEnd(0);
+	std::optional<Element> lastElemOpt = stack_.wholeElementFromEnd(0);
 	if(!lastElemOpt.has_value())
 		throw std::runtime_error("std::optional<int64_t> Processor::ret_(Instruction&) called on on incorrect stack");
 	Element lastElem = lastElemOpt.value();
@@ -162,6 +162,22 @@ std::optional<int64_t> Processor::init_(Instruction& instruction)
 	stack_.push(ElementInfo(std::get<TypeVariant>(args[0])));
 	return 0;
 }
+
+std::optional<int64_t> Processor::get_(Instruction& instruction)
+{
+	std::vector<Argument>& args = instruction.arguments();
+	if(args.size() != 1)
+		throw std::runtime_error("std::optional<int64_t> Processor::get_(Instruction&) called with invalid argument count");
+	if(!std::holds_alternative<PreStackIndex>(args[0]))
+		throw std::runtime_error("std::optional<int64_t> Processor::get_(Instruction&) called with invalid argument");
+	StackIndex stackIndex(std::get<PreStackIndex>(args[0]), this);
+	std::optional<Element> elemOpt = stack_.element(stackIndex.index());
+	if(!elemOpt.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::get_(Instruction&) can't get element");
+	Element elem = elemOpt.value();
+	std::variant<size_t, uint8_t*> elemPos = elem.index();
+}
+
 
 
 std::optional<int64_t> Processor::execute(Instruction& instruction)
@@ -184,8 +200,14 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 	case OpCode::init_:
 		return init_(instruction);
 		break;
-	case OpCode::mov_: // TODO: переделать
-		return mov_(instruction);
+	case OpCode::get_:
+		return get_(instruction);
+		break;
+	case OpCode::set_: 
+		return set_(instruction);
+		break;
+	case OpCode::valfromstlink_: 
+		return valfromstlink_(instruction);
 		break;
 	case OpCode::if_:
 		return if_(instruction);

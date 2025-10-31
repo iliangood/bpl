@@ -342,6 +342,11 @@ LinkType LinkType::operator=(LinkType&& other)
 	return *this;
 }
 
+size_t LinkType::size() const
+{
+	return sizeof(Link);
+}
+
 bool LinkType::isValid() const
 {
 	if(elementType_ == nullptr)

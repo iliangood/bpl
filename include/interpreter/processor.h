@@ -17,9 +17,9 @@ enum class OpCode
 	ret_,
 	
 	init_,
-	get_, // get value from StackLink
+	get_, // get value from StackLink(StackLink from PreStackLink)
 	set_, // set value by StackLink
-	valfromstlink, // value from StackLink
+	valfromstlink_, // value from StackLink
 
 	if_,
 	while_,
@@ -127,6 +127,7 @@ public:
 	bool isValid() const;
 };
 
+typedef std::variant<size_t, uint8_t*> Link;
 
 class Instruction;
 
@@ -159,7 +160,7 @@ public:
 
 typedef std::variant<int64_t, uint64_t, std::string, void*, PreStackIndex, std::vector<Instruction>> Value;
 
-typedef std::variant<Condition, TypeVariant, std::vector<Instruction>, Value> Argument;
+typedef std::variant<Condition, TypeVariant, std::vector<Instruction>, PreStackIndex, Value> Argument;
 
 
 
@@ -216,7 +217,7 @@ class Processor
 	std::optional<int64_t> init_(Instruction& instruction);
 	std::optional<int64_t> get_(Instruction& instruction);
 	std::optional<int64_t> set_(Instruction& instruction);
-	std::optional<int64_t> valfromstlink(Instruction& instruction);
+	std::optional<int64_t> valfromstlink_(Instruction& instruction);
 
 	std::optional<int64_t> if_(Instruction& instruction);
 	std::optional<int64_t> while_(Instruction& instruction);

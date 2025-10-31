@@ -110,6 +110,16 @@ std::optional<const uint8_t*> Stack::at(size_t index) const
 	return data_ + elem->pos();
 }
 
+uint8_t* Stack::at(Element elem)
+{
+	return data_ + elem.pos();
+}
+
+const uint8_t* Stack::at(Element elem) const
+{
+	return data_ + elem.pos();
+}
+
 std::optional<uint8_t*> Stack::atWhole(size_t index)
 {
 	std::optional<Element> elem = wholeElement(index);

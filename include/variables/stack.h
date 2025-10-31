@@ -175,6 +175,9 @@ public:
 	std::optional<uint8_t*> at(size_t index);
 	std::optional<const uint8_t*> at(size_t index) const;
 
+	uint8_t* at(Element elem);
+	const uint8_t* at(Element elem) const;
+
 	std::optional<uint8_t*> atWhole(size_t index);
 	std::optional<const uint8_t*> atWhole(size_t index) const;
 

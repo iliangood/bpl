@@ -10,7 +10,6 @@
 #include <memory>
 #include <stdexcept>
 
-
 #include "utils.h"
 
 class BaseType
@@ -104,7 +103,7 @@ public:
 	
 	bool isValid() const;
 
-	size_t size() const { return sizeof(std::variant<size_t, uint8_t*>); }
+	size_t size() const;
 	bool isGlobal() const { return elementType_ != nullptr; }
 
 
