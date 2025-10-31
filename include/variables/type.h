@@ -89,7 +89,7 @@ public:
 	std::vector<size_t> elementSubIndexes() const { return {0}; }
 };
 
-class LinkType // ! Доделать этот класс
+class LinkType
 {
 	std::unique_ptr<TypeVariant> elementType_;
 public:
@@ -105,6 +105,7 @@ public:
 
 	size_t size() const;
 	bool isGlobal() const { return elementType_ != nullptr; }
+	std::optional<TypeVariant> pointsTo() const;
 
 
 	bool operator==(const LinkType&) const { return true; }
@@ -251,7 +252,6 @@ public:
 		return std::get<T>(*this);
 	}
 };
-
 
 
 #endif

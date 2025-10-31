@@ -347,6 +347,13 @@ size_t LinkType::size() const
 	return sizeof(Link);
 }
 
+std::optional<TypeVariant> LinkType::pointsTo() const
+{
+	if (!elementType_)
+		return std::nullopt;
+	return *elementType_;
+}
+
 bool LinkType::isValid() const
 {
 	if(elementType_ == nullptr)

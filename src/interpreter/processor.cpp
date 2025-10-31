@@ -197,6 +197,17 @@ std::optional<int64_t> Processor::set_(Instruction&)
 	if(std::holds_alternative<uint8_t*>(*linkElemPos))
 	{
 		linkDataPtr = std::get<uint8_t*>(*linkElemPos);
+		std::optional<TypeVariant> targetTypeOpt = linkElem.type().get<LinkType>().pointsTo();
+		if(!targetTypeOpt.has_value())
+			throw std::runtime_error("std::optional<int64_t> Processor::set_(Instruction&) called on invalid link pointsTo");
+		TypeVariant targetType = targetTypeOpt.value();
+		linkDataSize = targetType.size();
+		if(getValidationLevel() >= ValidationLevel::light)
+		{
+			if(valueElem.type() != targetType)
+				throw std::runtime_error("std::optional<int64_t> Processor::set_(Instruction&) incopatible link");
+
+		}
 	}
 	else // size_t
 	{
@@ -205,7 +216,15 @@ std::optional<int64_t> Processor::set_(Instruction&)
 			throw std::runtime_error("std::optional<int64_t> Processor::set_(Instruction&) invalid link");
 		Element linkedElement = linkedElementOpt.value();
 		linkDataPtr = stack_.at(linkedElement);
+		linkDataSize = linkedElement.type().size();
+		if(getValidationLevel() >= ValidationLevel::light)
+		{
+			if(valueElem.type() != linkedElement.type())
+				throw std::runtime_error("std::optional<int64_t> Processor::set_(Instruction&) incopatible link");
+		}
 	}
+	memcpy(linkDataPtr, stack_.at(valueElem), linkDataSize);
+	return 0;
 }
 
 
