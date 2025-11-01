@@ -369,6 +369,28 @@ std::optional<int64_t> Processor::while_(Instruction& instruction)
 	return 0;
 }
 
+std::optional<int64_t> Processor::runInstsVec_(Instruction& instruction)
+{
+	std::vector<Argument>& args = instruction.arguments();
+	if(args.size() != 1)
+		throw std::runtime_error("std::optional<int64_t> Processor::runInstsVec_(Instruction&) incorrect arguments count");
+	if(!std::holds_alternative<std::vector<Instruction>>(args[0]))
+		throw std::runtime_error("std::optional<int64_t> Processor::runInstsVec_(Instruction&) incorrect argument type");
+	std::vector<Instruction>& body = std::get<std::vector<Instruction>>(args[0]);
+	stack_.newLevel();
+	for(Instruction& inst : body)
+	{
+		if(returningFromFunction_)
+		{
+			stack_.popLevel();
+			return 0;
+		}
+		execute(inst);
+	}
+	stack_.popLevel();
+	return 0;
+}
+
 std::optional<int64_t> Processor::execute(Instruction& instruction)
 {
 	if(finished())
