@@ -44,7 +44,12 @@ enum class OpCode
 	print_,
 	scan_,
 
-	cmp_,
+	ls_, // lesser
+	leq_, // lesser or equals
+	bg_, // bigger
+	beq_, // bigger or equals
+	equ_, // equals
+	neq_ // not equals
 };
 
 enum class Condition
@@ -215,6 +220,9 @@ class Processor
 	std::optional<int64_t> logicOper(bool(*operFunc)(bool a, bool b));
 	std::optional<int64_t> logicOper(bool(*operFunc)(bool a));
 
+	std::optional<int64_t> compareOper(bool(*operFunc)(int64_t a, int64_t b));
+
+
 	std::optional<int64_t> end_(Instruction& instruction);
 
 	std::optional<int64_t> call_(Instruction& instruction);
@@ -249,7 +257,12 @@ class Processor
 	std::optional<int64_t> print_(Instruction& instruction);
 	std::optional<int64_t> scan_(Instruction& instruction);
 
-	std::optional<int64_t> cmp_(Instruction& instruction);
+	std::optional<int64_t> ls_(Instruction& instruction);
+	std::optional<int64_t> leq_(Instruction& instruction);
+	std::optional<int64_t> bg_(Instruction& instruction);
+	std::optional<int64_t> beq_(Instruction& instruction);
+	std::optional<int64_t> equ_(Instruction& instruction);
+	std::optional<int64_t> neq_(Instruction& instruction);
 	
 
 	std::optional<int64_t> execute(Instruction& instruction);

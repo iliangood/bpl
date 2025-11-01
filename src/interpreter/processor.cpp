@@ -510,10 +510,10 @@ std::optional<int64_t> Processor::logicOper(bool(*operFunc)(bool a))
 {
 	std::optional<Element> operElemOpt = stack_.wholeElementFromEnd(0);
 	if(!operElemOpt.has_value())
-		throw std::runtime_error("std::optional<int64_t> Processor::logicOper(bool(*operFunc)(int64_t a, int64_t b)) invalid stack: can't get value");
+		throw std::runtime_error("std::optional<int64_t> Processor::logicOper(bool(*operFunc)(bool a)) invalid stack: can't get value");
 	Element operElem = operElemOpt.value();
 	if(!operElem.type().isBaseType())
-		throw std::runtime_error("std::optional<int64_t> Processor::logicOper(bool(*operFunc)(int64_t a, int64_t b)) invalid argumets types");
+		throw std::runtime_error("std::optional<int64_t> Processor::logicOper(bool(*operFunc)(bool a)) invalid argumets types");
 	const BaseType* operType = operElem.type().get<const BaseType*>();
 	if(operType == &baseTypes_[BaseTypeId::bool_])
 	{
@@ -524,7 +524,45 @@ std::optional<int64_t> Processor::logicOper(bool(*operFunc)(bool a))
 		*reinterpret_cast<bool*>(resAddr) = res;
 		return 0;
 	}
-	throw std::runtime_error("std::optional<int64_t> Processor::logicOper(bool(*operFunc)(bool a, bool b)) incorrect argumets types");
+	throw std::runtime_error("std::optional<int64_t> Processor::logicOper(bool(*operFunc)(bool a)) incorrect argumets types");
+	return 0;
+}
+
+std::optional<int64_t> Processor::compareOper(bool(*operFunc)(int64_t a, int64_t b))
+{
+	std::optional<Element> operAElemOpt = stack_.wholeElementFromEnd(1);
+	std::optional<Element> operBElemOpt = stack_.wholeElementFromEnd(0);
+	if(!operAElemOpt.has_value() || !operBElemOpt.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::compareOper(bool(*operFunc)(int64_t a, int64_t b)) invalid stack: can't get value");
+	Element operAElem = operAElemOpt.value();
+	Element operBElem = operBElemOpt.value();
+	if(!operAElem.type().isBaseType() || !operBElem.type().isBaseType())
+		throw std::runtime_error("std::optional<int64_t> Processor::compareOper(bool(*operFunc)(int64_t a, int64_t b)) invalid argumets types");
+	const BaseType* operAType = operAElem.type().get<const BaseType*>();
+	const BaseType* operBType = operBElem.type().get<const BaseType*>();
+	if(operAType == &baseTypes_[BaseTypeId::int64_] && operBType == &baseTypes_[BaseTypeId::int64_])
+	{
+		int64_t operA = *reinterpret_cast<int64_t*>( stack_.at(operAElem));
+		int64_t operB = *reinterpret_cast<int64_t*>( stack_.at(operAElem));
+		stack_.pop();
+		stack_.pop();
+		bool res = operFunc(operA, operB);
+		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_[BaseTypeId::bool_])));
+		*reinterpret_cast<bool*>(resAddr) = res;
+		return 0;
+	}
+	if(operAType == &baseTypes_[BaseTypeId::char_] && operBType == &baseTypes_[BaseTypeId::char_])
+	{
+		char operA = *reinterpret_cast<char*>( stack_.at(operAElem));
+		char operB = *reinterpret_cast<char*>( stack_.at(operAElem));
+		stack_.pop();
+		stack_.pop();
+		bool res = operFunc(operA, operB);
+		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_[BaseTypeId::bool_])));
+		*reinterpret_cast<char*>(resAddr) = res;
+		return 0;
+	}
+	throw std::runtime_error("std::optional<int64_t> Processor::compareOper(bool(*operFunc)(int64_t a, int64_t b)) incorrect argumets types");
 	return 0;
 }
 
@@ -571,6 +609,31 @@ std::optional<int64_t> Processor::or_(Instruction&)
 std::optional<int64_t> Processor::not_(Instruction&)
 {
 	return logicOper([](bool a){ return !a; });
+}
+
+std::optional<int64_t> Processor::ls_(Instruction&)
+{
+	return compareOper([](int64_t a, int64_t b){ return a < b; });
+}
+std::optional<int64_t> Processor::leq_(Instruction&)
+{
+	return compareOper([](int64_t a, int64_t b){ return a <= b; });
+}
+std::optional<int64_t> Processor::bg_(Instruction&)
+{
+	return compareOper([](int64_t a, int64_t b){ return a > b; });
+}
+std::optional<int64_t> Processor::beq_(Instruction&)
+{
+	return compareOper([](int64_t a, int64_t b){ return a >= b; });
+}
+std::optional<int64_t> Processor::equ_(Instruction&)
+{
+	return compareOper([](int64_t a, int64_t b){ return a == b; });
+}
+std::optional<int64_t> Processor::neq_(Instruction&)
+{
+	return compareOper([](int64_t a, int64_t b){ return a != b; });
 }
 
 std::optional<int64_t> Processor::execute(Instruction& instruction)
@@ -650,8 +713,20 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 	case OpCode::scan_:
 		return scan_(instruction);
 		break;
-	case OpCode::cmp_:
-		return cmp_(instruction);
+	case OpCode::ls_:
+		return ls_(instruction);
+		break;
+	case OpCode::leq_:
+		return leq_(instruction);
+		break;
+	case OpCode::bg_:
+		return bg_(instruction);
+		break;
+	case OpCode::beq_:
+		return beq_(instruction);
+		break;
+	case OpCode::equ_:
+		return equ_(instruction);
 		break;
 	default:
 		break;
