@@ -344,7 +344,29 @@ std::optional<int64_t> Processor::while_(Instruction& instruction)
 		throw std::runtime_error("std::optional<int64_t> Processor::while_(Instruction&) incorrect argumets count");
 	if(!std::holds_alternative<std::vector<Instruction>>(args[0]) || !std::holds_alternative<std::vector<Instruction>>(args[1]))
 		throw std::runtime_error("std::optional<int64_t> Processor::while_(Instruction&) incorrect argumets types");
-	std::vector<Instruction>& condition = std::get<Instruction>(args[0]);
+	std::vector<Instruction>& condition = std::get<std::vector<Instruction>>(args[0]);
+	bool condRes = checkCondition(condition);
+	if(returningFromFunction_)
+		return 0;
+	std::vector<Instruction>& body = std::get<std::vector<Instruction>>(args[1]);
+	while(condRes)
+	{
+		stack_.newLevel();
+		for(Instruction& inst : body)
+		{
+			if(returningFromFunction_)
+			{
+				stack_.popLevel();
+				return 0;
+			}
+			execute(inst);
+		}
+		stack_.popLevel();
+		condRes = checkCondition(condition);
+		if(returningFromFunction_)
+			return 0;
+	}
+	return 0;
 }
 
 std::optional<int64_t> Processor::execute(Instruction& instruction)
