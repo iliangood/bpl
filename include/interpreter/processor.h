@@ -222,6 +222,8 @@ class Processor
 	std::optional<int64_t> set_(Instruction& instruction);
 	std::optional<int64_t> valfromstlink_(Instruction& instruction);
 
+	bool checkCondition(std::vector<Instruction>& condition);
+
 	std::optional<int64_t> if_(Instruction& instruction);
 	std::optional<int64_t> while_(Instruction& instruction);
 

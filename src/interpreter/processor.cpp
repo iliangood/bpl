@@ -264,19 +264,8 @@ std::optional<int64_t> Processor::valfromstlink_(Instruction&)
 	return 0;
 }
 
-std::optional<int64_t> Processor::if_(Instruction& instruction)
+bool Processor::checkCondition(std::vector<Instruction>& condition)
 {
-	std::vector<Argument>& args = instruction.arguments();
-	if(args.size() != 2 || args.size() != 3)
-		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) with incorrect argumets count");
-	if(!std::holds_alternative<std::vector<Instruction>>(args[0]) || !std::holds_alternative<std::vector<Instruction>>(args[1]))
-		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) with incorrect argumets types");
-	if(args.size() == 3)
-	{
-		if(!std::holds_alternative<std::vector<Instruction>>(args[3]))
-			throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) with incorrect argumets types");
-	}
-	std::vector<Instruction> condition = std::get<std::vector<Instruction>>(args[0]);
 	stack_.newLevel();
 	for(Instruction& inst : condition)
 	{
@@ -296,7 +285,25 @@ std::optional<int64_t> Processor::if_(Instruction& instruction)
 
 	if(condResElem.type().get<const BaseType*>() != &baseTypes_[BaseTypeId::bool_])
 		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) incorrect condition: incorrect return value: should be BaseType bool");
-	bool condRes = *reinterpret_cast<bool*>(stack_.at(condResElem));
+	return *reinterpret_cast<bool*>(stack_.at(condResElem));
+}
+
+std::optional<int64_t> Processor::if_(Instruction& instruction)
+{
+	std::vector<Argument>& args = instruction.arguments();
+	if(args.size() != 2 || args.size() != 3)
+		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) with incorrect argumets count");
+	if(!std::holds_alternative<std::vector<Instruction>>(args[0]) || !std::holds_alternative<std::vector<Instruction>>(args[1]))
+		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) with incorrect argumets types");
+	if(args.size() == 3)
+	{
+		if(!std::holds_alternative<std::vector<Instruction>>(args[3]))
+			throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) with incorrect argumets types");
+	}
+	std::vector<Instruction>& condition = std::get<std::vector<Instruction>>(args[0]);
+	bool condRes = checkCondition(condition);
+	if(returningFromFunction_)
+		return 0;
 	if(condRes)
 	{
 		std::vector<Instruction>& insts = std::get<std::vector<Instruction>>(args[1]);
@@ -330,6 +337,15 @@ std::optional<int64_t> Processor::if_(Instruction& instruction)
 	return 0;
 }
 
+std::optional<int64_t> Processor::while_(Instruction& instruction)
+{
+	std::vector<Argument>& args = instruction.arguments();
+	if(args.size() != 2)
+		throw std::runtime_error("std::optional<int64_t> Processor::while_(Instruction&) incorrect argumets count");
+	if(!std::holds_alternative<std::vector<Instruction>>(args[0]) || !std::holds_alternative<std::vector<Instruction>>(args[1]))
+		throw std::runtime_error("std::optional<int64_t> Processor::while_(Instruction&) incorrect argumets types");
+	std::vector<Instruction>& condition = std::get<Instruction>(args[0]);
+}
 
 std::optional<int64_t> Processor::execute(Instruction& instruction)
 {
