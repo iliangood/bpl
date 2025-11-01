@@ -143,22 +143,17 @@ class Function // ! переделать конструктор да и мето
 {
 	FunctionType type_;
 	std::vector<Instruction> body_;
-	Processor* processor_;
 public:
-	Function() : type_(), body_(), processor_(nullptr) {}
-	Function(FunctionType type, const std::vector<Instruction>& body, Processor* processor) : type_(type), body_(body), processor_(processor) {}
-	Function(const Function& other) : type_(other.type_), body_(other.body_), processor_(other.processor_) {}
-	Function(Function&& other) : type_(std::move(other.type_)), body_(std::move(other.body_)), processor_(other.processor_) {}
-
-	Function(StackIndex index, Processor* processor);
+	Function() : type_(), body_() {}
+	Function(FunctionType type, const std::vector<Instruction>& body) : type_(type), body_(body){}
+	Function(const Function& other) : type_(other.type_), body_(other.body_) {}
+	Function(Function&& other) : type_(std::move(other.type_)), body_(std::move(other.body_)) {}
 
 	Function& operator=(const Function& other);
 
 	Function& operator=(Function&& other);
 
 	bool isValid() const;
-
-
 
 	FunctionType& type() { return type_; }
 	const FunctionType& type() const { return type_; }

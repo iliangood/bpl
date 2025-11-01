@@ -37,28 +37,6 @@ bool StackIndex::isValid() const
 
 
 
-Function::Function(StackIndex index, Processor* processor) : processor_(processor) // ! Переделать
-{
-	if(processor_ == nullptr)
-		throw std::invalid_argument("Function::Function(StackIndex, Processor*) null Processor pointer");
-	if(!index.isValid())
-		throw std::invalid_argument("Function::Function(StackIndex, Processor*) invalid StackIndex");
-	auto optFuncElement = processor_->stack_.element(index.index());
-	if(!optFuncElement.has_value())
-		throw std::invalid_argument("Function::Function(StackIndex, Processor*) invalid stack element");
-	Element funcElement = *optFuncElement;
-	if(!funcElement.type().isFunctionType())
-		throw std::invalid_argument("Function::Function(StackIndex, Processor*) index does not point to a FunctionType");
-	type_ = std::get<FunctionType>(funcElement.type());
-	auto optPtr = processor_->stack_.at(funcElement.pos());
-	if(!optPtr.has_value())
-		throw std::invalid_argument("Function::Function(StackIndex, Processor*) function body pointer not found on stack");
-	auto ptr = reinterpret_cast<std::vector<Instruction>*>(*optPtr);
-	body_ = *ptr;
-}
-
-
-
 Processor::Processor(const std::vector<Instruction>& program, size_t stackSize) : programm_(program),
 stack_(this, stackSize), FunctionReturnValues_(this, 1024), finished_(false), returningFromFunction_(false)
 {
