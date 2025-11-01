@@ -212,6 +212,8 @@ class Processor
 	void functionExit();
 
 	std::optional<int64_t> mathOper(int64_t(*operFunc)(int64_t a, int64_t b));
+	std::optional<int64_t> logicOper(bool(*operFunc)(bool a, bool b));
+	std::optional<int64_t> logicOper(bool(*operFunc)(bool a));
 
 	std::optional<int64_t> end_(Instruction& instruction);
 
