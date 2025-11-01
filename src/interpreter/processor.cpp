@@ -97,6 +97,8 @@ std::optional<int64_t> Processor::end_(Instruction& instruction) // ! Перед
 
 std::optional<int64_t> Processor::call_(Instruction&)
 {
+	if(finished_)
+		return std::nullopt;
 	std::optional<Element> lastElemOpt = stack_.wholeElementFromEnd(0);
 	if(!lastElemOpt.has_value())
 		throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&) called on incorrect stack stack_.wholeElementFromEnd(0) hasn't value");
@@ -127,6 +129,11 @@ std::optional<int64_t> Processor::call_(Instruction&)
 	for(Instruction& inst : body)
 	{
 		execute(inst);
+		if(finished_)
+		{
+			functionExit();
+			return std::nullopt;
+		}
 		if(returningFromFunction_)
 		{
 			returningFromFunction_ = false;
@@ -143,6 +150,8 @@ std::optional<int64_t> Processor::call_(Instruction&)
 
 std::optional<int64_t> Processor::ret_(Instruction&)
 {
+	if(finished_)
+		return std::nullopt;
 	std::optional<Element> lastElemOpt = stack_.wholeElementFromEnd(0);
 	if(!lastElemOpt.has_value())
 		throw std::runtime_error("std::optional<int64_t> Processor::ret_(Instruction&) called on on incorrect stack");
@@ -154,6 +163,8 @@ std::optional<int64_t> Processor::ret_(Instruction&)
 
 std::optional<int64_t> Processor::init_(Instruction& instruction)
 {
+	if(finished_)
+		return std::nullopt;
 	std::vector<Argument>& args = instruction.arguments();
 	if(args.size() != 1)
 		throw std::runtime_error("std::optional<int64_t> Processor::init_(Instruction&) init_ called with invalid arguments count");
@@ -165,6 +176,8 @@ std::optional<int64_t> Processor::init_(Instruction& instruction)
 
 std::optional<int64_t> Processor::get_(Instruction& instruction)
 {
+	if(finished_)
+		return std::nullopt;
 	std::vector<Argument>& args = instruction.arguments();
 	if(args.size() != 1)
 		throw std::runtime_error("std::optional<int64_t> Processor::get_(Instruction&) called with invalid argument count");
@@ -183,6 +196,8 @@ std::optional<int64_t> Processor::get_(Instruction& instruction)
 
 std::optional<int64_t> Processor::set_(Instruction&)
 {
+	if(finished_)
+		return std::nullopt;
 	std::optional<Element> valueElemOpt = stack_.wholeElementFromEnd(0);
 	std::optional<Element> linkElemOpt = stack_.wholeElementFromEnd(1);
 	if(!valueElemOpt.has_value() || !linkElemOpt.has_value())
@@ -229,6 +244,8 @@ std::optional<int64_t> Processor::set_(Instruction&)
 
 std::optional<int64_t> Processor::valfromstlink_(Instruction&)
 {
+	if(finished_)
+		return std::nullopt;
 	std::optional<Element> elemOpt = stack_.wholeElementFromEnd(0);
 	if(!elemOpt.has_value())
 		throw std::runtime_error("std::optional<int64_t> Processor::valfromstlink_(Instruction&) called on empty stack");
@@ -269,6 +286,11 @@ bool Processor::checkCondition(std::vector<Instruction>& condition)
 	stack_.newLevel();
 	for(Instruction& inst : condition)
 	{
+		if(finished_)
+		{
+			stack_.popLevel();
+			return 0;
+		}
 		if(returningFromFunction_)
 		{
 			stack_.popLevel();
@@ -304,6 +326,8 @@ std::optional<int64_t> Processor::if_(Instruction& instruction)
 	bool condRes = checkCondition(condition);
 	if(returningFromFunction_)
 		return 0;
+	if(finished_)
+		return std::nullopt;
 	if(condRes)
 	{
 		std::vector<Instruction>& insts = std::get<std::vector<Instruction>>(args[1]);
@@ -314,6 +338,11 @@ std::optional<int64_t> Processor::if_(Instruction& instruction)
 			{
 				stack_.popLevel();
 				return 0;
+			}
+			if(finished_)
+			{
+				stack_.popLevel();
+				return std::nullopt;
 			}
 			execute(inst);
 		}
@@ -329,6 +358,11 @@ std::optional<int64_t> Processor::if_(Instruction& instruction)
 			{
 				stack_.popLevel();
 				return 0;
+			}
+			if(finished_)
+			{
+				stack_.popLevel();
+				return std::nullopt;
 			}
 			execute(inst);
 		}
@@ -348,6 +382,8 @@ std::optional<int64_t> Processor::while_(Instruction& instruction)
 	bool condRes = checkCondition(condition);
 	if(returningFromFunction_)
 		return 0;
+	if(finished_)
+		return std::nullopt;
 	std::vector<Instruction>& body = std::get<std::vector<Instruction>>(args[1]);
 	while(condRes)
 	{
@@ -359,18 +395,27 @@ std::optional<int64_t> Processor::while_(Instruction& instruction)
 				stack_.popLevel();
 				return 0;
 			}
+			if(finished_)
+			{
+				stack_.popLevel();
+				return std::nullopt;
+			}
 			execute(inst);
 		}
 		stack_.popLevel();
 		condRes = checkCondition(condition);
 		if(returningFromFunction_)
 			return 0;
+		if(finished_)
+			return std::nullopt;
 	}
 	return 0;
 }
 
 std::optional<int64_t> Processor::runInstsVec_(Instruction& instruction)
 {
+	if(finished_)
+		return std::nullopt;
 	std::vector<Argument>& args = instruction.arguments();
 	if(args.size() != 1)
 		throw std::runtime_error("std::optional<int64_t> Processor::runInstsVec_(Instruction&) incorrect arguments count");
@@ -384,6 +429,11 @@ std::optional<int64_t> Processor::runInstsVec_(Instruction& instruction)
 		{
 			stack_.popLevel();
 			return 0;
+		}
+		if(finished_)
+		{
+			stack_.popLevel();
+			return std::nullopt;
 		}
 		execute(inst);
 	}
