@@ -64,7 +64,7 @@ stack_(this, stackSize), FunctionReturnValues_(this, 1024), finished_(false), re
 {
 	baseTypes_.resize(BaseTypeId::countOfBaseTypes);
 	baseTypes_[BaseTypeId::int64_] = BaseType("int64", sizeof(int64_t));
-	baseTypes_[BaseTypeId::uint64_] = BaseType("uint64", sizeof(uint64_t));
+	baseTypes_[BaseTypeId::bool_] = BaseType("bool", sizeof(bool));
 	baseTypes_[BaseTypeId::char_] = BaseType("char", sizeof(char));
 	baseTypes_[BaseTypeId::double_] = BaseType("double", sizeof(double));
 	baseTypes_[BaseTypeId::void_] = BaseType("void", 0);
@@ -264,6 +264,72 @@ std::optional<int64_t> Processor::valfromstlink_(Instruction&)
 	return 0;
 }
 
+std::optional<int64_t> Processor::if_(Instruction& instruction)
+{
+	std::vector<Argument>& args = instruction.arguments();
+	if(args.size() != 2 || args.size() != 3)
+		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) with incorrect argumets count");
+	if(!std::holds_alternative<std::vector<Instruction>>(args[0]) || !std::holds_alternative<std::vector<Instruction>>(args[1]))
+		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) with incorrect argumets types");
+	if(args.size() == 3)
+	{
+		if(!std::holds_alternative<std::vector<Instruction>>(args[3]))
+			throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) with incorrect argumets types");
+	}
+	std::vector<Instruction> condition = std::get<std::vector<Instruction>>(args[0]);
+	stack_.newLevel();
+	for(Instruction& inst : condition)
+	{
+		if(returningFromFunction_)
+		{
+			stack_.popLevel();
+			return 0;
+		}
+		execute(inst);
+	}
+	std::optional<Element> condResElemOpt = stack_.wholeElementFromEnd(0);
+	if(!condResElemOpt.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) incorrect condition: no return value");
+	Element condResElem = condResElemOpt.value();
+	if(!condResElem.type().isBaseType())
+		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) incorrect condition: incorrect return value: should be BaseType bool");
+
+	if(condResElem.type().get<const BaseType*>() != &baseTypes_[BaseTypeId::bool_])
+		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) incorrect condition: incorrect return value: should be BaseType bool");
+	bool condRes = *reinterpret_cast<bool*>(stack_.at(condResElem));
+	if(condRes)
+	{
+		std::vector<Instruction>& insts = std::get<std::vector<Instruction>>(args[1]);
+		stack_.newLevel();
+		for(Instruction& inst : insts)
+		{
+			if(returningFromFunction_)
+			{
+				stack_.popLevel();
+				return 0;
+			}
+			execute(inst);
+		}
+		stack_.popLevel();
+	}
+	if(!condRes && args.size() == 3)
+	{
+		std::vector<Instruction>& insts = std::get<std::vector<Instruction>>(args[2]);
+		stack_.newLevel();
+		for(Instruction& inst : insts)
+		{
+			if(returningFromFunction_)
+			{
+				stack_.popLevel();
+				return 0;
+			}
+			execute(inst);
+		}
+		stack_.popLevel();
+	}
+	return 0;
+}
+
 
 std::optional<int64_t> Processor::execute(Instruction& instruction)
 {
@@ -299,6 +365,9 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 		break;
 	case OpCode::while_:
 		return while_(instruction);
+		break;
+	case OpCode::runInstsVec_:
+		return runInstsVec_(instruction);
 		break;
 	case OpCode::add_:
 		return add_(instruction);

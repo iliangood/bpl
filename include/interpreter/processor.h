@@ -21,8 +21,11 @@ enum class OpCode
 	set_, // set value by StackLink
 	valfromstlink_, // value from StackLink
 
+	
 	if_,
 	while_,
+	
+	runInstsVec_,
 
 	add_,
 	sub_,
@@ -58,7 +61,7 @@ enum class Condition
 enum class BaseTypeId
 {
 	int64_ = 0,
-	uint64_,
+	bool_,
 	char_,
 	double_,
 	void_,
@@ -158,7 +161,7 @@ public:
 	const std::vector<Instruction>& body() const { return body_; }
 };
 
-typedef std::variant<int64_t, uint64_t, std::string, void*, PreStackIndex, std::vector<Instruction>> Value;
+typedef std::variant<int64_t, std::string, void*, PreStackIndex, std::vector<Instruction>> Value;
 
 typedef std::variant<Condition, TypeVariant, std::vector<Instruction>, PreStackIndex, Value> Argument;
 
@@ -221,6 +224,8 @@ class Processor
 
 	std::optional<int64_t> if_(Instruction& instruction);
 	std::optional<int64_t> while_(Instruction& instruction);
+
+	std::optional<int64_t> runInstsVec_(Instruction& instruction);
 
 	std::optional<int64_t> add_(Instruction& instruction);
 	std::optional<int64_t> sub_(Instruction& instruction);
