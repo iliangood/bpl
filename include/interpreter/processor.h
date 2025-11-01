@@ -139,7 +139,7 @@ typedef std::variant<size_t, uint8_t*> Link;
 
 class Instruction;
 
-class Function
+class Function // ! переделать конструктор да и методы ннаверное
 {
 	FunctionType type_;
 	std::vector<Instruction> body_;
