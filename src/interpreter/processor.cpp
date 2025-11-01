@@ -441,6 +441,66 @@ std::optional<int64_t> Processor::runInstsVec_(Instruction& instruction)
 	return 0;
 }
 
+std::optional<int64_t> Processor::mathOper(int64_t(*operFunc)(int64_t a, int64_t b))
+{
+	std::optional<Element> operAElemOpt = stack_.wholeElementFromEnd(1);
+	std::optional<Element> operBElemOpt = stack_.wholeElementFromEnd(0);
+	if(!operAElemOpt.has_value() || !operAElemOpt.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::mathOper(int64_t(*operFunc)(int64_t a, int64_t b)) invalid stack: can't get value");
+	Element operAElem = operAElemOpt.value();
+	Element operBElem = operBElemOpt.value();
+	if(!operAElem.type().isBaseType() || !operAElem.type().isBaseType())
+		throw std::runtime_error("std::optional<int64_t> Processor::mathOper(int64_t(*operFunc)(int64_t a, int64_t b)) invalid argumets types");
+	const BaseType* operAType = operAElem.type().get<const BaseType*>();
+	const BaseType* operBType = operBElem.type().get<const BaseType*>();
+	if(operAType == &baseTypes_[BaseTypeId::int64_] && operBType == &baseTypes_[BaseTypeId::int64_])
+	{
+		int64_t operA = *reinterpret_cast<int64_t*>( stack_.at(operAElem));
+		int64_t operB = *reinterpret_cast<int64_t*>( stack_.at(operAElem));
+		stack_.pop();
+		stack_.pop();
+		int64_t res = operFunc(operA, operB);
+		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_[BaseTypeId::int64_])));
+		*reinterpret_cast<int64_t*>(resAddr) = res;
+		return 0;
+	}
+	if(operAType == &baseTypes_[BaseTypeId::char_] && operBType == &baseTypes_[BaseTypeId::char_])
+	{
+		char operA = *reinterpret_cast<char*>( stack_.at(operAElem));
+		char operB = *reinterpret_cast<char*>( stack_.at(operAElem));
+		stack_.pop();
+		stack_.pop();
+		char res = operFunc(operA, operB);
+		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_[BaseTypeId::char_])));
+		*reinterpret_cast<char*>(resAddr) = res;
+		return 0;
+	}
+	throw std::runtime_error("std::optional<int64_t> Processor::mathOper(int64_t(*operFunc)(int64_t a, int64_t b)) incorrect argumets types");
+	return 0;
+}
+
+std::optional<int64_t> Processor::add_(Instruction&)
+{
+	return mathOper([](int64_t a, int64_t b){ return a + b; });
+}
+
+std::optional<int64_t> Processor::sub_(Instruction&)
+{
+	return mathOper([](int64_t a, int64_t b){ return a - b; });
+}
+std::optional<int64_t> Processor::mul_(Instruction&)
+{
+	return mathOper([](int64_t a, int64_t b){ return a * b; });
+}
+std::optional<int64_t> Processor::div_(Instruction&)
+{
+	return mathOper([](int64_t a, int64_t b){ return a / b; });
+}
+std::optional<int64_t> Processor::mod_(Instruction&)
+{
+	return mathOper([](int64_t a, int64_t b){ return a % b; });
+}
+
 std::optional<int64_t> Processor::execute(Instruction& instruction)
 {
 	if(finished())
