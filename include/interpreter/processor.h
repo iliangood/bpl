@@ -147,7 +147,7 @@ class Function
 public:
 	Function() : type_(), body_() {}
 	Function(FunctionType type, const std::vector<Instruction>& body) : type_(type), body_(body){}
-	Function(const Function& other) : type_(other.type_), body_(other.body_) {}
+	Function(const Function& other) : type_(other.type_), body_(other.body_) { std::cout << "Function copied" << std::endl; }
 	Function(Function&& other) : type_(std::move(other.type_)), body_(std::move(other.body_)) {}
 
 	Function& operator=(const Function& other) = default;
@@ -208,6 +208,8 @@ class Processor
 	bool finished_;
 	bool returningFromFunction_;
 	std::vector<uint8_t> returningValue_;
+
+	std::vector<Instruction>* funcBody;
 
 	void functionEntry();
 	void functionExit();
@@ -270,7 +272,9 @@ class Processor
 	Processor(size_t stackSize = 1 << 20);
 	void setProgram(const std::vector<Instruction>& program)
 	{
-	program_ = program;
+		std::cout << "start copy" << std::endl;
+		program_ = program;
+		std::cout << "stop copy" << std::endl;
 	}
 	std::optional<int64_t> run();
 	void notifyStackReallocation(uint8_t* new_data);

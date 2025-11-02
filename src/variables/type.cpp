@@ -589,7 +589,17 @@ bool FunctionType::isValid() const
 	return true;
 }
 
-TypeVariant FunctionType::returnType() const 
+TypeVariant& FunctionType::returnType()  
+{
+	if(getValidationLevel() >= ValidationLevel::light)
+	{
+		if(!isValid())
+			throw std::runtime_error("FunctionType::returnType() called on invalid FunctionType");
+	}
+	return *returnType_; 
+}
+
+const TypeVariant& FunctionType::returnType() const
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{

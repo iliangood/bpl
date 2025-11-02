@@ -4,10 +4,6 @@
 
 int main(/*int argc, char** argv*/)
 {
-	LinkType linkType = LinkType();
-	TypeVariant linkVariant(linkType);
-
-	
 	setValidationLevel(ValidationLevel::basic);
 	std::cout << "check" << std::endl;
 	Processor proc(1 << 20);

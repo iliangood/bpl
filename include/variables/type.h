@@ -56,7 +56,8 @@ public:
 
 	size_t size() const;
 	bool hasReturnType() const { return returnType_ != nullptr; }
-	TypeVariant returnType() const;
+	const TypeVariant& returnType() const;
+	TypeVariant& returnType();
 	const std::vector<TypeVariant>& argumentsTypes() const;
 	std::vector<TypeVariant>& argumentsTypes();
 

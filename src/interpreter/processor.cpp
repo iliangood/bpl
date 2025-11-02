@@ -116,10 +116,8 @@ std::optional<int64_t> Processor::call_(Instruction&)
 			}
 		}
 	}
-	std::optional<uint8_t*> elemPtr = stack_.atWhole(lastElem.index());
-	if(!elemPtr.has_value())
-		throw std::runtime_error("std::optional<int64_t> Processor::call_(Instruction&) can't get element pointer");
-	std::vector<Instruction>& body = *reinterpret_cast<std::vector<Instruction>*>(elemPtr.value());
+	uint8_t* elemPtr = stack_.at(lastElem);
+	std::vector<Instruction>& body = **reinterpret_cast<std::vector<Instruction>**>(elemPtr);
 	for(Instruction& inst : body)
 	{
 		execute(inst);
@@ -296,7 +294,7 @@ std::optional<int64_t> Processor::valfromarg_(Instruction& instruction)
 	//std::cout << args[0].index() << std::endl;
 	if(!std::holds_alternative<Value>(args[0]))
 		throw std::runtime_error("std::optional<int64_t> valfromarg_(Instruction&) incorrect argument type");
-	Value val = std::get<Value>(args[0]);
+	Value& val = std::get<Value>(args[0]);
 	if(std::holds_alternative<int64_t>(val))
 	{
 		int64_t value = std::get<int64_t>(val);
@@ -314,12 +312,14 @@ std::optional<int64_t> Processor::valfromarg_(Instruction& instruction)
 	}
 	if(std::holds_alternative<Function>(val))
 	{
-		Function func = std::get<Function>(val);
+		Function& func = std::get<Function>(val);
 		FunctionType& funcType = func.type();
-		TypeVariant returnType = funcType.returnType();
+		TypeVariant& returnType = funcType.returnType();
 		std::vector<TypeVariant>& argumentsTypes = funcType.argumentsTypes();
 		uint8_t* addr = stack_.push(ElementInfo(FunctionType(argumentsTypes, returnType)));
-		*reinterpret_cast<std::vector<Instruction>**>(addr) = &func.body();
+		std::vector<Instruction>* bodyAddr = &func.body();
+		funcBody = bodyAddr;
+		*reinterpret_cast<std::vector<Instruction>**>(addr) = bodyAddr;
 		return 0;
 	}
 	return 0;
