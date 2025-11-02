@@ -17,7 +17,7 @@ class BaseType
 	std::string name_;
 	size_t size_;
 public:
-	BaseType();
+	BaseType() : size_(0) {}
 	BaseType(std::string name, size_t size);
 	BaseType(BaseType&&) = default;
 	BaseType(const BaseType&) = default;
@@ -39,7 +39,6 @@ class TypeVariant;
 class FunctionType
 {
 	std::vector<TypeVariant> argumentsTypes_;
-	std::vector<std::string> argumentNames_;
 	std::unique_ptr<TypeVariant> returnType_;
 public:
 	FunctionType() : returnType_(nullptr) {}
@@ -59,7 +58,7 @@ public:
 	bool hasReturnType() const { return returnType_ != nullptr; }
 	TypeVariant returnType() const;
 	const std::vector<TypeVariant>& argumentsTypes() const;
-	const std::vector<std::string>& argumentNames() const;
+	std::vector<TypeVariant>& argumentsTypes();
 
 	size_t elemetCount() const { return 1; }
 	std::vector<size_t> elementSubIndexes() const { return {0}; }

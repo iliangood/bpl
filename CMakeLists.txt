@@ -21,6 +21,8 @@ target_link_libraries(stack PUBLIC types)
 
 add_executable(bpl src/bpl.cpp)
 
+target_link_libraries(bpl processor)
+
 enable_testing()
 add_subdirectory(tests)
 

@@ -259,6 +259,49 @@ std::optional<int64_t> Processor::valfromstlink_(Instruction&)
 	return 0;
 }
 
+// typedef std::variant<int64_t, char, Function> Value;
+
+std::optional<int64_t> Processor::valfromarg_(Instruction& instruction)
+{
+	if(finished_)
+		return std::nullopt;
+	std::vector<Argument>& args = instruction.arguments();
+	if(args.size() != 1)
+		throw std::runtime_error("std::optional<int64_t> valfromarg_(Instruction&) incorrect arguments count");
+	//std::cout << args[0].index() << std::endl;
+	if(!std::holds_alternative<Value>(args[0]))
+		throw std::runtime_error("std::optional<int64_t> valfromarg_(Instruction&) incorrect argument type");
+	Value val = std::get<Value>(args[0]);
+	if(std::holds_alternative<int64_t>(val))
+	{
+		int64_t value = std::get<int64_t>(val);
+		uint8_t* addr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::int64_]));
+		*reinterpret_cast<int64_t*>(addr) = value;
+		return 0;
+	}
+	if(std::holds_alternative<char>(val))
+	{
+		char value = std::get<char>(val);
+		uint8_t* addr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::char_]));
+		//std::cout << "put " << static_cast<int>(value) << "in stack" << std::endl;
+		*reinterpret_cast<char*>(addr) = value;
+		return 0;
+	}
+	if(std::holds_alternative<Function>(val))
+	{
+		Function func = std::get<Function>(val);
+		FunctionType& funcType = func.type();
+		TypeVariant returnType = funcType.returnType();
+		std::vector<TypeVariant>& argumentsTypes = funcType.argumentsTypes();
+		uint8_t* addr = stack_.push(ElementInfo(FunctionType(argumentsTypes, returnType)));
+		*reinterpret_cast<std::vector<Instruction>**>(addr) = &func.body();
+		return 0;
+	}
+	return 0;
+
+}
+
+
 bool Processor::checkCondition(std::vector<Instruction>& condition)
 {
 	stack_.newLevel();
@@ -614,17 +657,19 @@ std::optional<int64_t> Processor::neq_(Instruction&)
 	return compareOper([](int64_t a, int64_t b){ return a != b; });
 }
 
-char readCharIfAvailable() 
-{
-    if (std::cin.rdbuf()->in_avail() > 0) 
-        return static_cast<char>(std::cin.get());
-    return 0;
+char readCharIfAvailable() {
+    int ch = std::cin.peek();  // заглядываем в поток
+    if (ch == EOF) {
+        return 0;  // конец файла или ошибка
+    }
+    return static_cast<char>(std::cin.get());  // читаем символ
 }
 
 std::optional<int64_t> Processor::readCh_(Instruction&)
 {
 	char ch = readCharIfAvailable();
 	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::char_]));
+	//std::cout << "read char:" << static_cast<int>(ch) << std::endl;
 	*reinterpret_cast<char*>(ptr) = ch;
 	return 0;
 }
@@ -647,6 +692,10 @@ std::optional<int64_t> Processor::printCh_(Instruction&)
 	return 0;
 }
 
+std::optional<int64_t> Processor::stackRealloc_(Instruction&) //заглушка
+{
+	return 0;
+}
 
 std::optional<int64_t> Processor::execute(Instruction& instruction)
 {
@@ -676,6 +725,9 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 		break;
 	case OpCode::valfromstlink_: 
 		return valfromstlink_(instruction);
+		break;
+	case OpCode::valfromarg_: 
+		return valfromarg_(instruction);
 		break;
 	case OpCode::if_:
 		return if_(instruction);
@@ -741,10 +793,26 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 		return equ_(instruction);
 		break;
 	default:
+		throw std::runtime_error("std::optional<int64_t> Processor::execute(Instruction&) unknown Opcode");
 		break;
 	}
 	return std::nullopt;
-}	
+}
+
+std::optional<int64_t> Processor::run()
+{
+	//std::cout << "start execution" << std::endl;
+	for(Instruction& inst : programm_)
+	{
+		//std::cout << "executing" << std::endl;
+		if(finished_)
+			return std::nullopt;
+		if(returningFromFunction_)
+			return 0;
+		execute(inst);
+	}
+	return 0;
+}
 
 void Processor::notifyStackReallocation(uint8_t* /*new_data*/) // Currently does nothing
 {

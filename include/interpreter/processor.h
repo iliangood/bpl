@@ -21,6 +21,7 @@ enum class OpCode
 	get_, // get value from StackLink(StackLink from PreStackLink)
 	set_, // set value by StackLink
 	valfromstlink_, // value from StackLink
+	valfromarg_, // get value from argument
 
 	
 	if_,
@@ -161,7 +162,7 @@ public:
 	const std::vector<Instruction>& body() const { return body_; }
 };
 
-typedef std::variant<int64_t, char, void*, Function> Value;
+typedef std::variant<int64_t, char, Function> Value;
 
 typedef std::variant<Condition, TypeVariant, std::vector<Instruction>, PreStackIndex, Value> Argument;
 
@@ -228,6 +229,7 @@ class Processor
 	std::optional<int64_t> get_(Instruction& instruction);
 	std::optional<int64_t> set_(Instruction& instruction);
 	std::optional<int64_t> valfromstlink_(Instruction& instruction);
+	std::optional<int64_t> valfromarg_(Instruction& instruction);
 
 	bool checkCondition(std::vector<Instruction>& condition);
 
