@@ -614,6 +614,40 @@ std::optional<int64_t> Processor::neq_(Instruction&)
 	return compareOper([](int64_t a, int64_t b){ return a != b; });
 }
 
+char readCharIfAvailable() 
+{
+    if (std::cin.rdbuf()->in_avail() > 0) 
+        return static_cast<char>(std::cin.get());
+    return 0;
+}
+
+std::optional<int64_t> Processor::readCh_(Instruction&)
+{
+	char ch = readCharIfAvailable();
+	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::char_]));
+	*reinterpret_cast<char*>(ptr) = ch;
+	return 0;
+}
+
+std::optional<int64_t> Processor::printCh_(Instruction&)
+{
+	std::optional<Element> dataElemOpt = stack_.wholeElementFromEnd(0);
+	if(!dataElemOpt.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::printCh_(Instruction&) invalid last stack element");
+	Element dataElem = dataElemOpt.value();
+	if(!dataElem.type().isBaseType())
+		throw std::runtime_error("std::optional<int64_t> Processor::printCh_(Instruction&) incorrect last stack element");
+	if(dataElem.type().get<const BaseType*>() != &baseTypes_[BaseTypeId::char_])
+		throw std::runtime_error("std::optional<int64_t> Processor::printCh_(Instruction&) incopatible last stack element");
+	uint8_t* dataPtr = stack_.at(dataElem);
+	char ch = *reinterpret_cast<char*>(dataPtr);
+	stack_.pop();
+	std::cout << ch;
+	fflush(stdout);
+	return 0;
+}
+
+
 std::optional<int64_t> Processor::execute(Instruction& instruction)
 {
 	if(finished())
@@ -685,11 +719,11 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 	case OpCode::stackRealloc_:
 		return stackRealloc_(instruction);
 		break;
-	case OpCode::print_:
-		return print_(instruction);
+	case OpCode::printCh_:
+		return printCh_(instruction);
 		break;
-	case OpCode::scan_:
-		return scan_(instruction);
+	case OpCode::readCh_:
+		return readCh_(instruction);
 		break;
 	case OpCode::ls_:
 		return ls_(instruction);

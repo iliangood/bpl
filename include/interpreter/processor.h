@@ -1,6 +1,7 @@
 #if !defined PROCESSOR_H
 #define PROCESSOR_H
 
+#include <iostream>
 #include <vector>
 #include <string>
 #include <variant>
@@ -41,8 +42,7 @@ enum class OpCode
 	stackRealloc_,
 
 	printCh_,
-	print_,
-	scan_,
+	readCh_,
 
 	ls_, // lesser
 	leq_, // lesser or equals
@@ -139,7 +139,7 @@ typedef std::variant<size_t, uint8_t*> Link;
 
 class Instruction;
 
-class Function // ! переделать конструктор да и методы ннаверное
+class Function 
 {
 	FunctionType type_;
 	std::vector<Instruction> body_;
@@ -161,7 +161,7 @@ public:
 	const std::vector<Instruction>& body() const { return body_; }
 };
 
-typedef std::variant<int64_t, std::string, void*, PreStackIndex, std::vector<Instruction>> Value;
+typedef std::variant<int64_t, char, void*, Function> Value;
 
 typedef std::variant<Condition, TypeVariant, std::vector<Instruction>, PreStackIndex, Value> Argument;
 
@@ -249,8 +249,8 @@ class Processor
 
 	std::optional<int64_t> stackRealloc_(Instruction& instruction);
 
-	std::optional<int64_t> print_(Instruction& instruction);
-	std::optional<int64_t> scan_(Instruction& instruction);
+	std::optional<int64_t> printCh_(Instruction& instruction);
+	std::optional<int64_t> readCh_(Instruction& instruction);
 
 	std::optional<int64_t> ls_(Instruction& instruction);
 	std::optional<int64_t> leq_(Instruction& instruction);
