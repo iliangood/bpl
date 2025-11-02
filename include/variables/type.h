@@ -94,10 +94,10 @@ class LinkType
 public:
 	LinkType(TypeVariant elementType);
 	LinkType();
-	LinkType(LinkType& other);
+	LinkType(const LinkType& other);
 	LinkType(LinkType&& other);
 
-	LinkType operator=(LinkType& other);
+	LinkType operator=(const LinkType& other);
 	LinkType operator=(LinkType&& other);
 	
 	bool isValid() const;
@@ -178,53 +178,53 @@ class TypeVariant : public std::variant<const BaseType*, const StructType*, Func
 {
 private:
 	using Base = std::variant<const BaseType*, const StructType*, FunctionType, PointerType, ArrayType, LinkType>;
-	
-	template<typename T>
-	void assign(const T& value) {
-		static_cast<Base&>(*this) = value;
-	}
-
-	void copyFrom(const TypeVariant& other)
-	{
-		if(std::holds_alternative<const BaseType*>(other))
-			assign(std::get<const BaseType*>(other));
-		else if(std::holds_alternative<const StructType*>(other))
-			assign(std::get<const StructType*>(other));
-		else if(std::holds_alternative<FunctionType>(other))
-			assign(std::get<FunctionType>(other));
-		else if(std::holds_alternative<PointerType>(other))
-			assign(std::get<PointerType>(other));
-		else if(std::holds_alternative<ArrayType>(other))
-			assign(std::get<ArrayType>(other));
-		else if(std::holds_alternative<LinkType>(other))
-			assign(std::get<LinkType>(other));
-		else
-			throw std::runtime_error("void TypeVariant::copyFrom(const TypeVariant&) called on unknow TypeVariant");
-	}
 
 public:
 	TypeVariant() = default;
-	
-	template<typename T>
-	TypeVariant(const T& value)
-	{
-		assign(value);
-	}
-	
-	TypeVariant(const TypeVariant& other) : Base()
-	{
-		copyFrom(other);
-	}
-	
-	TypeVariant& operator=(const TypeVariant& other)
-	{
-		if (this != &other) 
-			copyFrom(other);
-		return *this;
-	}
+	TypeVariant(const TypeVariant&) = default;
+	TypeVariant(TypeVariant&&) noexcept = default;
+	TypeVariant& operator=(const TypeVariant&) = default;
+	TypeVariant& operator=(TypeVariant&&) noexcept = default;
 
-	TypeVariant(TypeVariant&& other) noexcept = default;
-	TypeVariant& operator=(TypeVariant&& other) noexcept = default;
+
+TypeVariant(const BaseType* ptr)
+	: Base(std::in_place_type<const BaseType*>, ptr)
+{}
+
+TypeVariant(const StructType* ptr)
+	: Base(std::in_place_type<const StructType*>, ptr)
+{}
+
+template<typename T,
+		 typename = std::enable_if_t<
+			!std::is_same_v<std::decay_t<T>, TypeVariant> &&
+			!std::is_same_v<std::decay_t<T>, BaseType*> &&
+			!std::is_same_v<std::decay_t<T>, const BaseType*> &&
+			!std::is_same_v<std::decay_t<T>, const StructType*> &&
+			!std::is_same_v<std::decay_t<T>, StructType*> &&
+			(std::is_same_v<std::decay_t<T>, FunctionType> ||
+			std::is_same_v<std::decay_t<T>, PointerType> ||
+			std::is_same_v<std::decay_t<T>, ArrayType> ||
+			std::is_same_v<std::decay_t<T>, LinkType>)
+		 >>
+TypeVariant(T&& value)
+	: Base(std::in_place_type<std::decay_t<T>>, std::forward<T>(value))
+{}
+	template<typename T,
+		 typename = std::enable_if_t<
+			 !std::is_same_v<std::decay_t<T>, TypeVariant> &&
+			 (std::is_same_v<std::decay_t<T>, BaseType*> || 
+			  std::is_same_v<std::decay_t<T>, const BaseType*> ||
+			  std::is_same_v<std::decay_t<T>, const StructType*> ||
+			  std::is_same_v<std::decay_t<T>, FunctionType> ||
+			  std::is_same_v<std::decay_t<T>, PointerType> ||
+			  std::is_same_v<std::decay_t<T>, ArrayType> ||
+			  std::is_same_v<std::decay_t<T>, LinkType>)
+		 >>
+TypeVariant(T& value)
+	: Base(std::in_place_type<std::decay_t<T>>, value)
+{}
+
 
 	bool isValid() const;
 	bool isBaseType() const;

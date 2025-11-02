@@ -37,7 +37,7 @@ bool StackIndex::isValid() const
 
 
 
-Processor::Processor(const std::vector<Instruction>& program, size_t stackSize) : programm_(program),
+Processor::Processor(const std::vector<Instruction>& program, size_t stackSize) : program_(program),
 stack_(this, stackSize), FunctionReturnValues_(this, 1024), finished_(false), returningFromFunction_(false)
 {
 	baseTypes_.resize(BaseTypeId::countOfBaseTypes);
@@ -47,6 +47,22 @@ stack_(this, stackSize), FunctionReturnValues_(this, 1024), finished_(false), re
 	baseTypes_[BaseTypeId::double_] = BaseType("double", sizeof(double));
 	baseTypes_[BaseTypeId::void_] = BaseType("void", 0);
 }
+
+Processor::Processor(size_t stackSize) : 
+stack_(this, stackSize), FunctionReturnValues_(this, 1024), finished_(false), returningFromFunction_(false)
+{
+	std::cout << "start" << std::endl;
+	baseTypes_.resize(BaseTypeId::countOfBaseTypes);
+	baseTypes_[BaseTypeId::int64_] = BaseType("int64", sizeof(int64_t));
+	baseTypes_[BaseTypeId::bool_] = BaseType("bool", sizeof(bool));
+	baseTypes_[BaseTypeId::char_] = BaseType("char", sizeof(char));
+	baseTypes_[BaseTypeId::double_] = BaseType("double", sizeof(double));
+	std::cout << "checking" << std::endl;
+	baseTypes_[BaseTypeId::void_] = BaseType("void", 0);
+	std::cout << "end" << std::endl;
+}
+
+
 
 void Processor::functionEntry() 
 {
@@ -156,18 +172,25 @@ std::optional<int64_t> Processor::get_(Instruction& instruction)
 {
 	if(finished_)
 		return std::nullopt;
+	std::cout << "getting" << std::endl;
 	std::vector<Argument>& args = instruction.arguments();
 	if(args.size() != 1)
 		throw std::runtime_error("std::optional<int64_t> Processor::get_(Instruction&) called with invalid argument count");
 	if(!std::holds_alternative<PreStackIndex>(args[0]))
 		throw std::runtime_error("std::optional<int64_t> Processor::get_(Instruction&) called with invalid argument");
+	std::cout << "ready getting01" << std::endl;
 	StackIndex stackIndex(std::get<PreStackIndex>(args[0]), this);
+	std::cout << "ready getting0" << std::endl;
 	std::optional<Element> elemOpt = stack_.element(stackIndex.index());
 	if(!elemOpt.has_value())
 		throw std::runtime_error("std::optional<int64_t> Processor::get_(Instruction&) can't get element");
-	Element elem = elemOpt.value();
+	std::cout << "ready getting" << std::endl;
+	Element& elem = elemOpt.value();
 	Link elemPos = elem.index();
-	uint8_t* elemPosD = stack_.push(ElementInfo(LinkType()));
+	LinkType linkType = LinkType();
+	TypeVariant linkVariant(linkType);
+	ElementInfo elemInfo(linkVariant);
+	uint8_t* elemPosD = stack_.push(ElementInfo(TypeVariant(LinkType())));
 	memcpy(elemPosD, &elem, sizeof(Link));
 	return 0;
 }
@@ -217,6 +240,8 @@ std::optional<int64_t> Processor::set_(Instruction&)
 		}
 	}
 	memcpy(linkDataPtr, stack_.at(valueElem), linkDataSize);
+	stack_.pop();
+	stack_.pop();
 	return 0;
 }
 
@@ -802,7 +827,7 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 std::optional<int64_t> Processor::run()
 {
 	//std::cout << "start execution" << std::endl;
-	for(Instruction& inst : programm_)
+	for(Instruction& inst : program_)
 	{
 		//std::cout << "executing" << std::endl;
 		if(finished_)

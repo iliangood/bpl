@@ -150,9 +150,9 @@ public:
 	Function(const Function& other) : type_(other.type_), body_(other.body_) {}
 	Function(Function&& other) : type_(std::move(other.type_)), body_(std::move(other.body_)) {}
 
-	Function& operator=(const Function& other);
+	Function& operator=(const Function& other) = default;
 
-	Function& operator=(Function&& other);
+	Function& operator=(Function&& other) = default;
 
 	bool isValid() const;
 
@@ -200,7 +200,7 @@ class Processor
 	friend class StackIndex;
 	friend class Function;
 
-	std::vector<Instruction> programm_;
+	std::vector<Instruction> program_;
 	BaseTypeVector baseTypes_;
 	Stack stack_;
 	std::vector<size_t> functionStackStartPositions_;
@@ -267,9 +267,22 @@ class Processor
 	bool returningFromFunction() const { return returningFromFunction_; }
 	public:
 	Processor(const std::vector<Instruction>& program, size_t stackSize = 1 << 20);
+	Processor(size_t stackSize = 1 << 20);
+	void setProgram(const std::vector<Instruction>& program)
+	{
+	program_ = program;
+	}
 	std::optional<int64_t> run();
 	void notifyStackReallocation(uint8_t* new_data);
 
+	BaseTypeVector& baseTypes()
+	{
+		return baseTypes_;
+	}
+	const BaseTypeVector& baseTypes() const
+	{
+		return baseTypes_;
+	}
 	bool finished();
 };
 

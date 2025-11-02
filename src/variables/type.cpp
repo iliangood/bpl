@@ -37,13 +37,7 @@ std::string BaseType::name() const
 bool BaseType::isValid() const
 {
 	if(name_.empty())
-	return false;
-	if(size_ == 0)
-	return false;
-
-	if(getValidationLevel() < ValidationLevel::basic)
-		return true;
-	
+		return false;	
 	return true;
 }
 
@@ -310,9 +304,10 @@ LinkType::LinkType(TypeVariant elementType)
 
 LinkType::LinkType()
 {
+	elementType_ = nullptr;
 }
 
-LinkType::LinkType(LinkType& other)
+LinkType::LinkType(const LinkType& other)
 {
 	if(other.elementType_ == nullptr)
 	{	
@@ -326,7 +321,7 @@ LinkType::LinkType(LinkType&& other)
 	elementType_ = std::move(other.elementType_);
 }
 
-LinkType LinkType::operator=(LinkType& other)
+LinkType LinkType::operator=(const LinkType& other)
 {
 	if(other.elementType_ == nullptr)
 	{	
@@ -579,8 +574,10 @@ bool FunctionType::isValid() const
 {
 	if(returnType_ == nullptr)
 		return false;
+	std::cout << "returnType_ check" << std::endl;
 	if(!returnType_->isValid())
 		return false;
+	std::cout << "returnType_ checked" << std::endl;
 	if(getValidationLevel() < ValidationLevel::basic)
 		return true;
 	
