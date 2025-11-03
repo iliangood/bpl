@@ -574,10 +574,10 @@ bool FunctionType::isValid() const
 {
 	if(returnType_ == nullptr)
 		return false;
-	std::cout << "returnType_ check" << std::endl;
+	//std::cout << "returnType_ check" << std::endl;
 	if(!returnType_->isValid())
 		return false;
-	std::cout << "returnType_ checked" << std::endl;
+	//std::cout << "returnType_ checked" << std::endl;
 	if(getValidationLevel() < ValidationLevel::basic)
 		return true;
 	

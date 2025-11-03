@@ -1,5 +1,7 @@
 #include "interpreter/processor.h"
 #include "utils.h"
+#include <sys/select.h>
+#include <unistd.h>
 
 StackIndex::StackIndex(size_t index, Processor* processor, bool isGlobal) : processor_(processor) 
 {
@@ -46,20 +48,22 @@ stack_(this, stackSize), FunctionReturnValues_(this, 1024), finished_(false), re
 	baseTypes_[BaseTypeId::char_] = BaseType("char", sizeof(char));
 	baseTypes_[BaseTypeId::double_] = BaseType("double", sizeof(double));
 	baseTypes_[BaseTypeId::void_] = BaseType("void", 0);
+	noBlockingInput_ = false;
 }
 
 Processor::Processor(size_t stackSize) : 
 stack_(this, stackSize), FunctionReturnValues_(this, 1024), finished_(false), returningFromFunction_(false)
 {
-	std::cout << "start" << std::endl;
+	//std::cout << "start" << std::endl;
 	baseTypes_.resize(BaseTypeId::countOfBaseTypes);
 	baseTypes_[BaseTypeId::int64_] = BaseType("int64", sizeof(int64_t));
 	baseTypes_[BaseTypeId::bool_] = BaseType("bool", sizeof(bool));
 	baseTypes_[BaseTypeId::char_] = BaseType("char", sizeof(char));
 	baseTypes_[BaseTypeId::double_] = BaseType("double", sizeof(double));
-	std::cout << "checking" << std::endl;
+	//std::cout << "checking" << std::endl;
 	baseTypes_[BaseTypeId::void_] = BaseType("void", 0);
-	std::cout << "end" << std::endl;
+	//std::cout << "end" << std::endl;
+	noBlockingInput_ = false;
 }
 
 
@@ -170,19 +174,19 @@ std::optional<int64_t> Processor::get_(Instruction& instruction)
 {
 	if(finished_)
 		return std::nullopt;
-	std::cout << "getting" << std::endl;
+	//std::cout << "getting" << std::endl;
 	std::vector<Argument>& args = instruction.arguments();
 	if(args.size() != 1)
 		throw std::runtime_error("std::optional<int64_t> Processor::get_(Instruction&) called with invalid argument count");
 	if(!std::holds_alternative<PreStackIndex>(args[0]))
 		throw std::runtime_error("std::optional<int64_t> Processor::get_(Instruction&) called with invalid argument");
-	std::cout << "ready getting01" << std::endl;
+	//std::cout << "ready getting01" << std::endl;
 	StackIndex stackIndex(std::get<PreStackIndex>(args[0]), this);
-	std::cout << "ready getting0" << std::endl;
+	//std::cout << "ready getting0" << std::endl;
 	std::optional<Element> elemOpt = stack_.element(stackIndex.index());
 	if(!elemOpt.has_value())
 		throw std::runtime_error("std::optional<int64_t> Processor::get_(Instruction&) can't get element");
-	std::cout << "ready getting" << std::endl;
+	//std::cout << "ready getting" << std::endl;
 	Element& elem = elemOpt.value();
 	Link elemPos = elem.index();
 	LinkType linkType = LinkType();
@@ -318,7 +322,6 @@ std::optional<int64_t> Processor::valfromarg_(Instruction& instruction)
 		std::vector<TypeVariant>& argumentsTypes = funcType.argumentsTypes();
 		uint8_t* addr = stack_.push(ElementInfo(FunctionType(argumentsTypes, returnType)));
 		std::vector<Instruction>* bodyAddr = &func.body();
-		funcBody = bodyAddr;
 		*reinterpret_cast<std::vector<Instruction>**>(addr) = bodyAddr;
 		return 0;
 	}
@@ -682,20 +685,75 @@ std::optional<int64_t> Processor::neq_(Instruction&)
 	return compareOper([](int64_t a, int64_t b){ return a != b; });
 }
 
-char readCharIfAvailable() {
-    int ch = std::cin.peek();  // заглядываем в поток
-    if (ch == EOF) {
-        return 0;  // конец файла или ошибка
-    }
-    return static_cast<char>(std::cin.get());  // читаем символ
+bool has_input_nonblocking() 
+{
+	fd_set readfds;
+	struct timeval timeout = {0, 0};
+
+	FD_ZERO(&readfds);
+	FD_SET(STDIN_FILENO, &readfds);
+
+	int result = select(STDIN_FILENO + 1, &readfds, nullptr, nullptr, &timeout);
+
+	return result > 0; 
+}
+
+template<typename T>
+std::optional<T> read(bool nonBlocking) 
+{
+	if(nonBlocking)
+	{
+		if(!has_input_nonblocking())
+		{
+			return std::nullopt;
+		}
+	}
+	T val;
+	std::cin >> val;
+	return val;  
 }
 
 std::optional<int64_t> Processor::readCh_(Instruction&)
 {
-	char ch = readCharIfAvailable();
+
+	std::optional<char> chOpt = read<char>(noBlockingInput_);
+	char ch = chOpt.has_value() ? chOpt.value() : 0;
 	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::char_]));
-	//std::cout << "read char:" << static_cast<int>(ch) << std::endl;
 	*reinterpret_cast<char*>(ptr) = ch;
+	return 0;
+}
+
+std::optional<int64_t> Processor::checkBuf_(Instruction&)
+{
+	bool res = has_input_nonblocking();
+	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::bool_]));
+	*reinterpret_cast<bool*>(ptr) = res;
+	return 0;
+}
+
+std::optional<int64_t> Processor::setNoBlockingInput_(Instruction&)
+{
+	std::optional<Element> dataElemOpt = stack_.wholeElementFromEnd(0);
+	if(!dataElemOpt.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::setNoBlockingInput_(Instruction&) invalid last stack element");
+	Element dataElem = dataElemOpt.value();
+	if(!dataElem.type().isBaseType())
+		throw std::runtime_error("std::optional<int64_t> Processor::setNoBlockingInput_(Instruction&) incorrect last stack element");
+	if(dataElem.type().get<const BaseType*>() != &baseTypes_[BaseTypeId::bool_])
+		throw std::runtime_error("std::optional<int64_t> Processor::setNoBlockingInput_(Instruction&) incopatible last stack element");
+	uint8_t* ptr = stack_.at(dataElem);
+	noBlockingInput_ = *reinterpret_cast<bool*>(ptr);
+	stack_.pop();
+	return 0;
+}
+
+std::optional<int64_t> Processor::readNum_(Instruction&)
+{
+
+	std::optional<int64_t> chOpt = read<int64_t>(noBlockingInput_);
+	int64_t num = chOpt.has_value() ? chOpt.value() : 0;
+	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::int64_]));
+	*reinterpret_cast<int64_t*>(ptr) = num;
 	return 0;
 }
 
@@ -714,6 +772,34 @@ std::optional<int64_t> Processor::printCh_(Instruction&)
 	stack_.pop();
 	std::cout << ch;
 	fflush(stdout);
+	return 0;
+}
+
+std::optional<int64_t> Processor::printNum_(Instruction&)
+{
+	std::optional<Element> dataElemOpt = stack_.wholeElementFromEnd(0);
+	if(!dataElemOpt.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::printNum_(Instruction&) invalid last stack element");
+	Element dataElem = dataElemOpt.value();
+	if(!dataElem.type().isBaseType())
+		throw std::runtime_error("std::optional<int64_t> Processor::printNum_(Instruction&) incorrect last stack element");
+	if(dataElem.type().get<const BaseType*>() != &baseTypes_[BaseTypeId::int64_])
+		throw std::runtime_error("std::optional<int64_t> Processor::printNum_(Instruction&) incopatible last stack element");
+	uint8_t* dataPtr = stack_.at(dataElem);
+	int64_t num = *reinterpret_cast<int64_t*>(dataPtr);
+	stack_.pop();
+	std::cout << num;
+	fflush(stdout);
+	return 0;
+}
+
+std::optional<int64_t> Processor::peekCh_(Instruction&)
+{
+
+	std::optional<char> chOpt = read<char>(noBlockingInput_);
+	char ch = chOpt.has_value() ? chOpt.value() : 0;
+	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::char_]));
+	*reinterpret_cast<char*>(ptr) = ch;
 	return 0;
 }
 
@@ -796,11 +882,23 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 	case OpCode::stackRealloc_:
 		return stackRealloc_(instruction);
 		break;
+	case OpCode::setNoBlockingInput_:
+		return setNoBlockingInput_(instruction);
+		break;
+	case OpCode::checkBuf_:
+		return checkBuf_(instruction);
+		break;
 	case OpCode::printCh_:
 		return printCh_(instruction);
 		break;
+	case OpCode::printNum_:
+		return printNum_(instruction);
+		break;
 	case OpCode::readCh_:
 		return readCh_(instruction);
+		break;
+	case OpCode::readNum_:
+		return readNum_(instruction);
 		break;
 	case OpCode::ls_:
 		return ls_(instruction);

@@ -42,8 +42,13 @@ enum class OpCode
 
 	stackRealloc_,
 
+	setNoBlockingInput_,
+	checkBuf_,
 	printCh_,
+	printNum_,
 	readCh_,
+	readNum_,
+	peekCh_,
 
 	ls_, // lesser
 	leq_, // lesser or equals
@@ -147,7 +152,7 @@ class Function
 public:
 	Function() : type_(), body_() {}
 	Function(FunctionType type, const std::vector<Instruction>& body) : type_(type), body_(body){}
-	Function(const Function& other) : type_(other.type_), body_(other.body_) { std::cout << "Function copied" << std::endl; }
+	Function(const Function& other) : type_(other.type_), body_(other.body_) { /*std::cout << "Function copied" << std::endl;*/ }
 	Function(Function&& other) : type_(std::move(other.type_)), body_(std::move(other.body_)) {}
 
 	Function& operator=(const Function& other) = default;
@@ -207,9 +212,9 @@ class Processor
 	Stack FunctionReturnValues_;
 	bool finished_;
 	bool returningFromFunction_;
+	bool noBlockingInput_;
 	std::vector<uint8_t> returningValue_;
 
-	std::vector<Instruction>* funcBody;
 
 	void functionEntry();
 	void functionExit();
@@ -253,8 +258,13 @@ class Processor
 
 	std::optional<int64_t> stackRealloc_(Instruction& instruction);
 
+	std::optional<int64_t> setNoBlockingInput_(Instruction& instruction);
+	std::optional<int64_t> checkBuf_(Instruction& instruction);
 	std::optional<int64_t> printCh_(Instruction& instruction);
+	std::optional<int64_t> printNum_(Instruction& instruction);
 	std::optional<int64_t> readCh_(Instruction& instruction);
+	std::optional<int64_t> readNum_(Instruction& instruction);
+	std::optional<int64_t> peekCh_(Instruction& instruction);
 
 	std::optional<int64_t> ls_(Instruction& instruction);
 	std::optional<int64_t> leq_(Instruction& instruction);
@@ -272,9 +282,9 @@ class Processor
 	Processor(size_t stackSize = 1 << 20);
 	void setProgram(const std::vector<Instruction>& program)
 	{
-		std::cout << "start copy" << std::endl;
+		//std::cout << "start copy" << std::endl;
 		program_ = program;
-		std::cout << "stop copy" << std::endl;
+		//std::cout << "stop copy" << std::endl;
 	}
 	std::optional<int64_t> run();
 	void notifyStackReallocation(uint8_t* new_data);

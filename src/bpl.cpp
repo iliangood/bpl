@@ -5,9 +5,7 @@
 int main(/*int argc, char** argv*/)
 {
 	setValidationLevel(ValidationLevel::basic);
-	std::cout << "check" << std::endl;
 	Processor proc(1 << 20);
-	std::cout << "check" << std::endl;
 	std::vector<Instruction> program
 	{
 		Instruction(OpCode::init_, std::vector<Argument>{Argument(
@@ -54,7 +52,6 @@ int main(/*int argc, char** argv*/)
 			Instruction(OpCode::call_, std::vector<Argument>{})
 		})} )
 	};
-	std::cout << "start" << std::endl;
 	proc.setProgram(program);
 	proc.run();
 	return 0;
