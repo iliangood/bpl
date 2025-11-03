@@ -193,7 +193,7 @@ std::optional<int64_t> Processor::get_(Instruction& instruction)
 	TypeVariant linkVariant(linkType);
 	ElementInfo elemInfo(linkVariant);
 	uint8_t* elemPosD = stack_.push(ElementInfo(TypeVariant(LinkType())));
-	memcpy(elemPosD, &elem, sizeof(Link));
+	*reinterpret_cast<Link*>(elemPosD) = elemPos;
 	return 0;
 }
 
@@ -349,26 +349,28 @@ bool Processor::checkCondition(std::vector<Instruction>& condition)
 	}
 	std::optional<Element> condResElemOpt = stack_.wholeElementFromEnd(0);
 	if(!condResElemOpt.has_value())
-		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) incorrect condition: no return value");
+		throw std::runtime_error("std::optional<int64_t> Processor::checkCondition(Instruction&) incorrect condition: no return value");
 	Element condResElem = condResElemOpt.value();
 	if(!condResElem.type().isBaseType())
-		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) incorrect condition: incorrect return value: should be BaseType bool");
+		throw std::runtime_error("std::optional<int64_t> Processor::checkCondition(Instruction&) incorrect condition: incorrect return value: should be BaseType bool");
 
 	if(condResElem.type().get<const BaseType*>() != &baseTypes_[BaseTypeId::bool_])
-		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) incorrect condition: incorrect return value: should be BaseType bool");
-	return *reinterpret_cast<bool*>(stack_.at(condResElem));
+		throw std::runtime_error("std::optional<int64_t> Processor::checkCondition(Instruction&) incorrect condition: incorrect return value: should be BaseType bool");
+	bool res = *reinterpret_cast<bool*>(stack_.at(condResElem));
+	stack_.popLevel();
+	return res;
 }
 
 std::optional<int64_t> Processor::if_(Instruction& instruction)
 {
 	std::vector<Argument>& args = instruction.arguments();
-	if(args.size() != 2 || args.size() != 3)
+	if(!(args.size() == 2 || args.size() == 3))
 		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) with incorrect argumets count");
 	if(!std::holds_alternative<std::vector<Instruction>>(args[0]) || !std::holds_alternative<std::vector<Instruction>>(args[1]))
 		throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) with incorrect argumets types");
 	if(args.size() == 3)
 	{
-		if(!std::holds_alternative<std::vector<Instruction>>(args[3]))
+		if(!std::holds_alternative<std::vector<Instruction>>(args[2]))
 			throw std::runtime_error("std::optional<int64_t> Processor::if_(Instruction&) with incorrect argumets types");
 	}
 	std::vector<Instruction>& condition = std::get<std::vector<Instruction>>(args[0]);
@@ -505,7 +507,7 @@ std::optional<int64_t> Processor::mathOper(int64_t(*operFunc)(int64_t a, int64_t
 	if(operAType == &baseTypes_[BaseTypeId::int64_] && operBType == &baseTypes_[BaseTypeId::int64_])
 	{
 		int64_t operA = *reinterpret_cast<int64_t*>( stack_.at(operAElem));
-		int64_t operB = *reinterpret_cast<int64_t*>( stack_.at(operAElem));
+		int64_t operB = *reinterpret_cast<int64_t*>( stack_.at(operBElem));
 		stack_.pop();
 		stack_.pop();
 		int64_t res = operFunc(operA, operB);
@@ -516,7 +518,7 @@ std::optional<int64_t> Processor::mathOper(int64_t(*operFunc)(int64_t a, int64_t
 	if(operAType == &baseTypes_[BaseTypeId::char_] && operBType == &baseTypes_[BaseTypeId::char_])
 	{
 		char operA = *reinterpret_cast<char*>( stack_.at(operAElem));
-		char operB = *reinterpret_cast<char*>( stack_.at(operAElem));
+		char operB = *reinterpret_cast<char*>( stack_.at(operBElem));
 		stack_.pop();
 		stack_.pop();
 		char res = operFunc(operA, operB);
@@ -592,7 +594,7 @@ std::optional<int64_t> Processor::compareOper(bool(*operFunc)(int64_t a, int64_t
 	if(operAType == &baseTypes_[BaseTypeId::int64_] && operBType == &baseTypes_[BaseTypeId::int64_])
 	{
 		int64_t operA = *reinterpret_cast<int64_t*>( stack_.at(operAElem));
-		int64_t operB = *reinterpret_cast<int64_t*>( stack_.at(operAElem));
+		int64_t operB = *reinterpret_cast<int64_t*>( stack_.at(operBElem));
 		stack_.pop();
 		stack_.pop();
 		bool res = operFunc(operA, operB);
@@ -603,7 +605,7 @@ std::optional<int64_t> Processor::compareOper(bool(*operFunc)(int64_t a, int64_t
 	if(operAType == &baseTypes_[BaseTypeId::char_] && operBType == &baseTypes_[BaseTypeId::char_])
 	{
 		char operA = *reinterpret_cast<char*>( stack_.at(operAElem));
-		char operB = *reinterpret_cast<char*>( stack_.at(operAElem));
+		char operB = *reinterpret_cast<char*>( stack_.at(operBElem));
 		stack_.pop();
 		stack_.pop();
 		bool res = operFunc(operA, operB);
