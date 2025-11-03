@@ -286,6 +286,12 @@ class Processor
 		program_ = program;
 		//std::cout << "stop copy" << std::endl;
 	}
+	void setProgram(std::vector<Instruction>&& program)
+	{
+		//std::cout << "start copy" << std::endl;
+		program_ = std::move(program);
+		//std::cout << "stop copy" << std::endl;
+	}
 	std::optional<int64_t> run();
 	void notifyStackReallocation(uint8_t* new_data);
 

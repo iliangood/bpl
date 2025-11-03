@@ -6,7 +6,7 @@ int main(/*int argc, char** argv*/)
 {
 	setValidationLevel(ValidationLevel::basic);
 	Processor proc(1 << 20);
-	std::vector<Instruction> program
+	/*std::vector<Instruction> program
 	{
 		Instruction(OpCode::init_, std::vector<Argument>{Argument(
 			FunctionType(std::vector<TypeVariant>{}, TypeVariant(&proc.baseTypes()[BaseTypeId::void_])) 
@@ -51,7 +51,8 @@ int main(/*int argc, char** argv*/)
 			Instruction(OpCode::valfromstlink_, std::vector<Argument>{}),
 			Instruction(OpCode::call_, std::vector<Argument>{})
 		})} )
-	};
+	};*/
+
 
 	std::vector<Instruction> prog1
 	{
@@ -171,7 +172,7 @@ int main(/*int argc, char** argv*/)
 		})
 	};
 
-	proc.setProgram(prog1);
+	proc.setProgram(std::move(prog1));
 	proc.run();
 	return 0;
 }
