@@ -290,13 +290,79 @@ std::optional<int64_t> Processor::getSublink_(Instruction&)
 {
 	if(finished_)
 		return std::nullopt;
-	std::optional<Element> elemOpt = stack_.wholeElementFromEnd(0);
-	if(!elemOpt.has_value())
-		throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) called on empty stack");
+	std::optional<Element> elemOpt = stack_.wholeElementFromEnd(1);
+	std::optional<Element> elemDubIndexOpt = stack_.wholeElementFromEnd(0);
+	if(!elemOpt.has_value() || !elemDubIndexOpt.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) called on incorrect stack");
 	Element elem = elemOpt.value();
-	if(!elem.type().isLinkType())
-		throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) last element should be link");
-	
+	Element elemDubIndex = elemDubIndexOpt.value();
+	if(!elem.type().isLinkType() || elemDubIndex.type().isBaseType())
+		throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) incorrect elemnts types");
+	if(elemDubIndex.type() != &baseTypes_[BaseTypeId::int64_])
+		throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) last element should be int64");
+	Link link = *reinterpret_cast<Link*>(stack_.at(elem));
+	size_t subIndex = *reinterpret_cast<int64_t*>(stack_.at(elemDubIndex));
+
+	if(subIndex == 0)
+	{
+		stack_.pop();
+		return 0;
+	}
+	TypeVariant linkType;
+	Link subLink;
+	if(std::holds_alternative<uint8_t*>(link))
+	{
+		std::optional<TypeVariant> linkTypeOpt = elem.type().get<LinkType>().pointsTo();
+		if(!linkTypeOpt.has_value())
+			throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) incorrect elemnt info in stack");
+		linkType = linkTypeOpt.value();
+		if(linkType.isArrayType())
+		{
+			TypeVariant arrType = linkType.get<ArrayType>().elementType();
+			size_t elemSize = arrType.size();
+			size_t elemCount = linkType.get<ArrayType>().count();
+			if(subIndex > elemCount)
+				throw std::out_of_range("std::optional<int64_t> Processor::getSublink_(Instruction&) subIndex > elemCount in array");
+			size_t offset = (subIndex - 1) * elemSize;
+			subLink = std::get<uint8_t*>(link) + offset;
+			stack_.pop();
+			stack_.pop();
+			uint8_t* dataPtr = stack_.push(TypeVariant(LinkType(linkType)));
+			*reinterpret_cast<Link*>(dataPtr) = subLink;
+			return 0;
+		}
+		if(linkType.isStructType())
+		{
+			size_t offset = linkType.get<const StructType*>()->offsetBySize(subIndex);
+			TypeVariant elemType = linkType.get<const StructType*>()->type(subIndex);
+			subLink = std::get<uint8_t*>(link) + offset;
+			stack_.pop();
+			stack_.pop();
+			uint8_t* dataPtr = stack_.push(TypeVariant(LinkType(linkType)));
+			*reinterpret_cast<Link*>(dataPtr) = subLink;
+			return 0;
+		}
+		throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) incorrect link's pointsTo");
+	}
+	else if(std::holds_alternative<size_t>(link))
+	{
+		std::optional<Element> linkedElementOpt = stack_.element(std::get<size_t>(link));
+		if(!linkedElementOpt.has_value())
+			throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) incorrect link");
+		Element linkedElement = linkedElementOpt.value();
+		std::optional<Element> subElementOpt = linkedElement.atSubElements(subIndex);
+		if(!subElementOpt.has_value())
+			throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) incorrect sub-index");
+		Element subElement = subElementOpt.value();
+		subLink = subElement.index();
+		stack_.pop();
+		stack_.pop();
+		uint8_t* dataPtr = stack_.push(TypeVariant(LinkType()));
+		*reinterpret_cast<Link*>(dataPtr) = subLink;
+	}
+	else
+		throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) unknown link type");
+	return 0;
 }
 
 std::optional<int64_t> Processor::valfromarg_(Instruction& instruction)
@@ -854,6 +920,9 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 		break;
 	case OpCode::valfromarg_: 
 		return valfromarg_(instruction);
+		break;
+	case OpCode::getSublink_:
+		return getSublink_(instruction);
 		break;
 	case OpCode::if_:
 		return if_(instruction);
