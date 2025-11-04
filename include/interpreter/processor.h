@@ -22,6 +22,7 @@ enum class OpCode
 	set_, // set value by StackLink
 	valfromstlink_, // value from StackLink
 	valfromarg_, // get value from argument
+	getSublink_, // get link on sub-element of link
 
 	
 	if_,
@@ -237,6 +238,7 @@ class Processor
 	std::optional<int64_t> set_(Instruction& instruction);
 	std::optional<int64_t> valfromstlink_(Instruction& instruction);
 	std::optional<int64_t> valfromarg_(Instruction& instruction);
+	std::optional<int64_t> getSublink_(Instruction& instruction);
 
 	bool checkCondition(std::vector<Instruction>& condition);
 

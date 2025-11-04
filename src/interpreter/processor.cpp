@@ -286,7 +286,18 @@ std::optional<int64_t> Processor::valfromstlink_(Instruction&)
 	return 0;
 }
 
-// typedef std::variant<int64_t, char, Function> Value;
+std::optional<int64_t> Processor::getSublink_(Instruction&)
+{
+	if(finished_)
+		return std::nullopt;
+	std::optional<Element> elemOpt = stack_.wholeElementFromEnd(0);
+	if(!elemOpt.has_value())
+		throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) called on empty stack");
+	Element elem = elemOpt.value();
+	if(!elem.type().isLinkType())
+		throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) last element should be link");
+	
+}
 
 std::optional<int64_t> Processor::valfromarg_(Instruction& instruction)
 {
@@ -797,9 +808,11 @@ std::optional<int64_t> Processor::printNum_(Instruction&)
 
 std::optional<int64_t> Processor::peekCh_(Instruction&)
 {
-
-	std::optional<char> chOpt = read<char>(noBlockingInput_);
-	char ch = chOpt.has_value() ? chOpt.value() : 0;
+	char ch;
+	if(noBlockingInput_ && !has_input_nonblocking())
+		ch = 0;
+	else
+		std::cin >> ch;
 	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::char_]));
 	*reinterpret_cast<char*>(ptr) = ch;
 	return 0;
