@@ -15,13 +15,15 @@ add_library(processor STATIC src/interpreter/processor.cpp)
 
 add_library(variables STATIC src/variables/type.cpp)
 
+add_library(interpreter STATIC src/interpreter/interpreter.cpp)
+
 target_link_libraries(processor PUBLIC variables stack utils)
 
 target_link_libraries(stack PUBLIC types)
 
 add_executable(bpl src/bpl.cpp)
 
-target_link_libraries(bpl processor)
+target_link_libraries(bpl processor interpreter)
 
 enable_testing()
 add_subdirectory(tests)
