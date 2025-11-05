@@ -15,7 +15,7 @@ add_library(processor STATIC src/interpreter/processor.cpp)
 
 add_library(variables STATIC src/variables/type.cpp)
 
-add_library(interpreter STATIC src/interpreter/interpreter.cpp)
+add_library(parser STATIC src/interpreter/parser.cpp)
 
 target_link_libraries(processor PUBLIC variables stack utils)
 
@@ -23,7 +23,7 @@ target_link_libraries(stack PUBLIC types)
 
 add_executable(bpl src/bpl.cpp)
 
-target_link_libraries(bpl processor interpreter)
+target_link_libraries(bpl processor parser)
 
 enable_testing()
 add_subdirectory(tests)
