@@ -24,11 +24,11 @@ public:
 	}
 };
 
-class Scope
+class BlockScope
 {
 	std::unordered_map<std::string, size_t> variables_;
 public:
-	Scope() {}
+	BlockScope() {}
 	void insert(const Variable& variable)
 	{
 		variables_.insert(variable.toPair());
@@ -43,16 +43,31 @@ public:
 	}
 };
 
-class parser
+class FunctionScope
+{
+	std::vector<BlockScope> scopes_;
+public:
+	void inScope()
+	{
+		scopes_.emplace_back();
+	}
+	void outScope()
+	{
+		scopes_.pop_back();
+	}
+	std::vector<BlockScope>& scopes();
+};
+
+class Parser
 {
 	Processor* processor_;
 	
-	Scope globalScope_;
-	std::vector<Scope> scopes_;
+	FunctionScope globalScope_;
+	std::vector<FunctionScope> scopes_;
 
-	Instruction ParseLine();
+	Instruction ParseInstruction();
 public:
-	parser(Processor processor);
+	Parser(Processor processor);
 	
 	std::vector<Instruction> parse(std::string_view programm);
 };
