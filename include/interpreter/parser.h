@@ -33,13 +33,16 @@ public:
 	{
 		variables_.insert(variable.toPair());
 	}
-	size_t offset(std::string name)
+	std::optional<size_t> find(std::string name) const
 	{
-		return variables_[name];
+		std::unordered_map<std::string, size_t>::const_iterator it = variables_.find(name);
+		if(variables_.end() == it)
+			return std::nullopt;
+		return it->second;
 	}
-	size_t get(std::string name)
+	std::optional<size_t> get(std::string name) const
 	{
-		return variables_[name];
+		return find(name);
 	}
 };
 
@@ -55,7 +58,28 @@ public:
 	{
 		scopes_.pop_back();
 	}
-	std::vector<BlockScope>& scopes();
+	void insert(const Variable& variable)
+	{
+		scopes_.back().insert(variable);
+	}
+	std::vector<BlockScope>& scopes()
+	{
+		return scopes_;
+	}
+	const std::vector<BlockScope>& scopes() const
+	{
+		return scopes_;
+	}
+	std::optional<size_t> find(std::string name) const 
+	{
+		for(std::vector<BlockScope>::const_reverse_iterator it = scopes_.crbegin(); it != scopes_.crend(); ++it)
+		{
+			std::optional<size_t> jt = it->find(name);
+			if(jt.has_value())
+				return jt.value();
+		}
+		return std::nullopt;
+	}
 };
 
 class Parser
