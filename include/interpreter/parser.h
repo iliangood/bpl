@@ -91,7 +91,7 @@ class Parser
 
 	Instruction ParseInstruction();
 public:
-	Parser(Processor processor);
+	Parser(Processor* processor);
 	
 	std::vector<Instruction> parse(std::string_view programm);
 };
