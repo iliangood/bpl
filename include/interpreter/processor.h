@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 #include <variant>
+#include <map>
+#include <optional>
 
 #include "variables/stack.h"
 #include "variables/type.h"
@@ -71,32 +73,6 @@ enum class Condition
 	gte_
 };
 
-
-enum class BaseTypeId
-{
-	int64_ = 0,
-	bool_,
-	char_,
-	double_,
-	void_,
-	countOfBaseTypes
-};
-
-class BaseTypeVector : public std::vector<BaseType>
-{
-public:
-	using std::vector<BaseType>::vector;
-	using std::vector<BaseType>::operator[];
-	using std::vector<BaseType>::at;
-	using std::vector<BaseType>::size;
-	using std::vector<BaseType>::resize;
-	using std::vector<BaseType>::begin;
-	using std::vector<BaseType>::end;
-	using std::vector<BaseType>::data;
-	BaseType& operator[](BaseTypeId id) { return std::vector<BaseType>::operator[](static_cast<size_t>(id)); }
-	const BaseType& operator[](BaseTypeId id) const { return std::vector<BaseType>::operator[](static_cast<size_t>(id)); }
-	void resize(BaseTypeId count) { std::vector<BaseType>::resize(static_cast<size_t>(count)); }
-};
 class Processor;
 
 class PreStackIndex
@@ -209,8 +185,8 @@ class Processor
 	friend class Function;
 
 	std::vector<Instruction> program_;
-	BaseTypeVector baseTypes_;
-	std::vector<StructType> structs_;
+	std::map<std::string, BaseType> baseTypes_;
+	std::map<std::string, StructType> structs_;
 	
 	Stack stack_;
 	std::vector<size_t> functionStackStartPositions_;
@@ -301,27 +277,27 @@ class Processor
 	std::optional<int64_t> run();
 	void notifyStackReallocation(uint8_t* new_data);
 
-	BaseTypeVector& baseTypes()
+	std::map<std::string, BaseType>& baseTypes()
 	{
 		return baseTypes_;
 	}
-	const BaseTypeVector& baseTypes() const
+	const std::map<std::string, BaseType>& baseTypes() const
 	{
 		return baseTypes_;
 	}
 	bool finished();
 
-	std::vector<StructType>& structs()
+	std::map<std::string, StructType>& structs()
 	{
 		return structs_;
 	}
-	const std::vector<StructType>& structs() const
+	const std::map<std::string, StructType>& structs() const
 	{
 		return structs_;
 	}
-	void addStruct(const StructType& structType)
+	void addStruct(const StructType& structType, std::string name)
 	{
-		structs_.push_back(structType);
+		structs_.insert({name, structType});
 	}
 };
 

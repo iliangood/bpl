@@ -5,7 +5,7 @@
 
 
 
-BaseType::BaseType(std::string name, size_t size) : name_(std::move(name)), size_(size) 
+BaseType::BaseType(size_t size) : size_(size) 
 {
 	if(getValidationLevel() >= ValidationLevel::light)
 	{
@@ -24,20 +24,8 @@ size_t BaseType::size() const
 	return size_; 
 }
 
-std::string BaseType::name() const 
-{
-	if(getValidationLevel() >= ValidationLevel::full)
-	{
-		if(!isValid())
-			throw std::runtime_error("BaseType::name() called on invalid BaseType");
-	} 
-	return name_; 
-}
-
 bool BaseType::isValid() const
 {
-	if(name_.empty())
-		return false;	
 	return true;
 }
 

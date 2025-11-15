@@ -14,11 +14,10 @@
 
 class BaseType
 {
-	std::string name_;
 	size_t size_;
 public:
 	BaseType() : size_(0) {}
-	BaseType(std::string name, size_t size);
+	BaseType(size_t size);
 	BaseType(BaseType&&) = default;
 	BaseType(const BaseType&) = default;
 	BaseType& operator=(BaseType&&) = default;
@@ -27,7 +26,6 @@ public:
 	bool isValid() const;
 
 	size_t size() const;
-	std::string name() const;
 
 	size_t elementCount() const { return 1; }
 	std::vector<size_t> elementSubIndexes() const { return {0}; }

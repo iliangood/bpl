@@ -119,27 +119,23 @@ bool StackIndex::isValid() const
 Processor::Processor(const std::vector<Instruction>& program, size_t stackSize) : program_(program),
 stack_(this, stackSize), FunctionReturnValues_(this, 1024), finished_(false), returningFromFunction_(false)
 {
-	baseTypes_.resize(BaseTypeId::countOfBaseTypes);
-	baseTypes_[BaseTypeId::int64_] = BaseType("int64", sizeof(int64_t));
-	baseTypes_[BaseTypeId::bool_] = BaseType("bool", sizeof(bool));
-	baseTypes_[BaseTypeId::char_] = BaseType("char", sizeof(char));
-	baseTypes_[BaseTypeId::double_] = BaseType("double", sizeof(double));
-	baseTypes_[BaseTypeId::void_] = BaseType("void", 0);
+	baseTypes_.insert({"int64", BaseType(sizeof(int64_t))});
+	baseTypes_.insert({"bool", BaseType(sizeof(bool))});
+	baseTypes_.insert({"char", BaseType(sizeof(char))});
+	baseTypes_.insert({"double", BaseType( sizeof(double))});
+	baseTypes_.insert({"void", BaseType(0)});
+	
 	noBlockingInput_ = false;
 }
 
 Processor::Processor(size_t stackSize) : 
 stack_(this, stackSize), FunctionReturnValues_(this, 1024), finished_(false), returningFromFunction_(false)
 {
-	//std::cout << "start" << std::endl;
-	baseTypes_.resize(BaseTypeId::countOfBaseTypes);
-	baseTypes_[BaseTypeId::int64_] = BaseType("int64", sizeof(int64_t));
-	baseTypes_[BaseTypeId::bool_] = BaseType("bool", sizeof(bool));
-	baseTypes_[BaseTypeId::char_] = BaseType("char", sizeof(char));
-	baseTypes_[BaseTypeId::double_] = BaseType("double", sizeof(double));
-	//std::cout << "checking" << std::endl;
-	baseTypes_[BaseTypeId::void_] = BaseType("void", 0);
-	//std::cout << "end" << std::endl;
+	baseTypes_.insert({"int64", BaseType(sizeof(int64_t))});
+	baseTypes_.insert({"bool", BaseType(sizeof(bool))});
+	baseTypes_.insert({"char", BaseType(sizeof(char))});
+	baseTypes_.insert({"double", BaseType( sizeof(double))});
+	baseTypes_.insert({"void", BaseType(0)});
 	noBlockingInput_ = false;
 }
 
@@ -375,7 +371,7 @@ std::optional<int64_t> Processor::getSublink_(Instruction&)
 	Element elemDubIndex = elemDubIndexOpt.value();
 	if(!elem.type().isLinkType() || elemDubIndex.type().isBaseType())
 		throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) incorrect elemnts types");
-	if(elemDubIndex.type() != &baseTypes_[BaseTypeId::int64_])
+	if(elemDubIndex.type() != &baseTypes_["int64"])
 		throw std::runtime_error("std::optional<int64_t> Processor::getSublink_(Instruction&) last element should be int64");
 	Link link = *reinterpret_cast<Link*>(stack_.at(elem));
 	size_t subIndex = *reinterpret_cast<int64_t*>(stack_.at(elemDubIndex));
@@ -456,14 +452,14 @@ std::optional<int64_t> Processor::valfromarg_(Instruction& instruction)
 	if(std::holds_alternative<int64_t>(val))
 	{
 		int64_t value = std::get<int64_t>(val);
-		uint8_t* addr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::int64_]));
+		uint8_t* addr = stack_.push(ElementInfo(&baseTypes_["int64"]));
 		*reinterpret_cast<int64_t*>(addr) = value;
 		return 0;
 	}
 	if(std::holds_alternative<char>(val))
 	{
 		char value = std::get<char>(val);
-		uint8_t* addr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::char_]));
+		uint8_t* addr = stack_.push(ElementInfo(&baseTypes_["char"]));
 		//std::cout << "put " << static_cast<int>(value) << "in stack" << std::endl;
 		*reinterpret_cast<char*>(addr) = value;
 		return 0;
@@ -508,7 +504,7 @@ bool Processor::checkCondition(std::vector<Instruction>& condition)
 	if(!condResElem.type().isBaseType())
 		throw std::runtime_error("std::optional<int64_t> Processor::checkCondition(Instruction&) incorrect condition: incorrect return value: should be BaseType bool");
 
-	if(condResElem.type().get<const BaseType*>() != &baseTypes_[BaseTypeId::bool_])
+	if(condResElem.type().get<const BaseType*>() != &baseTypes_["bool"])
 		throw std::runtime_error("std::optional<int64_t> Processor::checkCondition(Instruction&) incorrect condition: incorrect return value: should be BaseType bool");
 	bool res = *reinterpret_cast<bool*>(stack_.at(condResElem));
 	stack_.popLevel();
@@ -658,25 +654,25 @@ std::optional<int64_t> Processor::mathOper(int64_t(*operFunc)(int64_t a, int64_t
 		throw std::runtime_error("std::optional<int64_t> Processor::mathOper(int64_t(*operFunc)(int64_t a, int64_t b)) invalid argumets types");
 	const BaseType* operAType = operAElem.type().get<const BaseType*>();
 	const BaseType* operBType = operBElem.type().get<const BaseType*>();
-	if(operAType == &baseTypes_[BaseTypeId::int64_] && operBType == &baseTypes_[BaseTypeId::int64_])
+	if(operAType == &baseTypes_["int64"] && operBType == &baseTypes_["int64"])
 	{
 		int64_t operA = *reinterpret_cast<int64_t*>( stack_.at(operAElem));
 		int64_t operB = *reinterpret_cast<int64_t*>( stack_.at(operBElem));
 		stack_.pop();
 		stack_.pop();
 		int64_t res = operFunc(operA, operB);
-		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_[BaseTypeId::int64_])));
+		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_["int64"])));
 		*reinterpret_cast<int64_t*>(resAddr) = res;
 		return 0;
 	}
-	if(operAType == &baseTypes_[BaseTypeId::char_] && operBType == &baseTypes_[BaseTypeId::char_])
+	if(operAType == &baseTypes_["char"] && operBType == &baseTypes_["char"])
 	{
 		char operA = *reinterpret_cast<char*>( stack_.at(operAElem));
 		char operB = *reinterpret_cast<char*>( stack_.at(operBElem));
 		stack_.pop();
 		stack_.pop();
 		char res = operFunc(operA, operB);
-		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_[BaseTypeId::char_])));
+		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_["char"])));
 		*reinterpret_cast<char*>(resAddr) = res;
 		return 0;
 	}
@@ -696,14 +692,14 @@ std::optional<int64_t> Processor::logicOper(bool(*operFunc)(bool a, bool b))
 		throw std::runtime_error("std::optional<int64_t> Processor::logicOper(bool(*operFunc)(int64_t a, int64_t b)) invalid argumets types");
 	const BaseType* operAType = operAElem.type().get<const BaseType*>();
 	const BaseType* operBType = operBElem.type().get<const BaseType*>();
-	if(operAType == &baseTypes_[BaseTypeId::bool_] && operBType == &baseTypes_[BaseTypeId::bool_])
+	if(operAType == &baseTypes_["bool"] && operBType == &baseTypes_["bool"])
 	{
 		bool operA = *reinterpret_cast<bool*>( stack_.at(operAElem));
 		bool operB = *reinterpret_cast<bool*>( stack_.at(operBElem));
 		stack_.pop();
 		stack_.pop();
 		bool res = operFunc(operA, operB);
-		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_[BaseTypeId::int64_])));
+		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_["int64"])));
 		*reinterpret_cast<bool*>(resAddr) = res;
 		return 0;
 	}
@@ -720,12 +716,12 @@ std::optional<int64_t> Processor::logicOper(bool(*operFunc)(bool a))
 	if(!operElem.type().isBaseType())
 		throw std::runtime_error("std::optional<int64_t> Processor::logicOper(bool(*operFunc)(bool a)) invalid argumets types");
 	const BaseType* operType = operElem.type().get<const BaseType*>();
-	if(operType == &baseTypes_[BaseTypeId::bool_])
+	if(operType == &baseTypes_["bool"])
 	{
 		bool oper = *reinterpret_cast<bool*>( stack_.at(operElem));
 		stack_.pop();
 		bool res = operFunc(oper);
-		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_[BaseTypeId::int64_])));
+		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_["bool"])));
 		*reinterpret_cast<bool*>(resAddr) = res;
 		return 0;
 	}
@@ -745,25 +741,25 @@ std::optional<int64_t> Processor::compareOper(bool(*operFunc)(int64_t a, int64_t
 		throw std::runtime_error("std::optional<int64_t> Processor::compareOper(bool(*operFunc)(int64_t a, int64_t b)) invalid argumets types");
 	const BaseType* operAType = operAElem.type().get<const BaseType*>();
 	const BaseType* operBType = operBElem.type().get<const BaseType*>();
-	if(operAType == &baseTypes_[BaseTypeId::int64_] && operBType == &baseTypes_[BaseTypeId::int64_])
+	if(operAType == &baseTypes_["int64"] && operBType == &baseTypes_["int64"])
 	{
 		int64_t operA = *reinterpret_cast<int64_t*>( stack_.at(operAElem));
 		int64_t operB = *reinterpret_cast<int64_t*>( stack_.at(operBElem));
 		stack_.pop();
 		stack_.pop();
 		bool res = operFunc(operA, operB);
-		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_[BaseTypeId::bool_])));
+		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_["bool"])));
 		*reinterpret_cast<bool*>(resAddr) = res;
 		return 0;
 	}
-	if(operAType == &baseTypes_[BaseTypeId::char_] && operBType == &baseTypes_[BaseTypeId::char_])
+	if(operAType == &baseTypes_["char"] && operBType == &baseTypes_["char"])
 	{
 		char operA = *reinterpret_cast<char*>( stack_.at(operAElem));
 		char operB = *reinterpret_cast<char*>( stack_.at(operBElem));
 		stack_.pop();
 		stack_.pop();
 		bool res = operFunc(operA, operB);
-		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_[BaseTypeId::bool_])));
+		uint8_t* resAddr = stack_.push(ElementInfo(TypeVariant(&baseTypes_["bool"])));
 		*reinterpret_cast<char*>(resAddr) = res;
 		return 0;
 	}
@@ -874,7 +870,7 @@ std::optional<int64_t> Processor::readCh_(Instruction&)
 
 	std::optional<char> chOpt = read<char>(noBlockingInput_);
 	char ch = chOpt.has_value() ? chOpt.value() : 0;
-	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::char_]));
+	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_["char"]));
 	*reinterpret_cast<char*>(ptr) = ch;
 	return 0;
 }
@@ -882,7 +878,7 @@ std::optional<int64_t> Processor::readCh_(Instruction&)
 std::optional<int64_t> Processor::checkBuf_(Instruction&)
 {
 	bool res = has_input_nonblocking();
-	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::bool_]));
+	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_["bool"]));
 	*reinterpret_cast<bool*>(ptr) = res;
 	return 0;
 }
@@ -895,7 +891,7 @@ std::optional<int64_t> Processor::setNoBlockingInput_(Instruction&)
 	Element dataElem = dataElemOpt.value();
 	if(!dataElem.type().isBaseType())
 		throw std::runtime_error("std::optional<int64_t> Processor::setNoBlockingInput_(Instruction&) incorrect last stack element");
-	if(dataElem.type().get<const BaseType*>() != &baseTypes_[BaseTypeId::bool_])
+	if(dataElem.type().get<const BaseType*>() != &baseTypes_["bool"])
 		throw std::runtime_error("std::optional<int64_t> Processor::setNoBlockingInput_(Instruction&) incopatible last stack element");
 	uint8_t* ptr = stack_.at(dataElem);
 	noBlockingInput_ = *reinterpret_cast<bool*>(ptr);
@@ -908,7 +904,7 @@ std::optional<int64_t> Processor::readNum_(Instruction&)
 
 	std::optional<int64_t> chOpt = read<int64_t>(noBlockingInput_);
 	int64_t num = chOpt.has_value() ? chOpt.value() : 0;
-	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::int64_]));
+	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_["int64"]));
 	*reinterpret_cast<int64_t*>(ptr) = num;
 	return 0;
 }
@@ -921,7 +917,7 @@ std::optional<int64_t> Processor::printCh_(Instruction&)
 	Element dataElem = dataElemOpt.value();
 	if(!dataElem.type().isBaseType())
 		throw std::runtime_error("std::optional<int64_t> Processor::printCh_(Instruction&) incorrect last stack element");
-	if(dataElem.type().get<const BaseType*>() != &baseTypes_[BaseTypeId::char_])
+	if(dataElem.type().get<const BaseType*>() != &baseTypes_["char"])
 		throw std::runtime_error("std::optional<int64_t> Processor::printCh_(Instruction&) incopatible last stack element");
 	uint8_t* dataPtr = stack_.at(dataElem);
 	char ch = *reinterpret_cast<char*>(dataPtr);
@@ -939,7 +935,7 @@ std::optional<int64_t> Processor::printNum_(Instruction&)
 	Element dataElem = dataElemOpt.value();
 	if(!dataElem.type().isBaseType())
 		throw std::runtime_error("std::optional<int64_t> Processor::printNum_(Instruction&) incorrect last stack element");
-	if(dataElem.type().get<const BaseType*>() != &baseTypes_[BaseTypeId::int64_])
+	if(dataElem.type().get<const BaseType*>() != &baseTypes_["int64"])
 		throw std::runtime_error("std::optional<int64_t> Processor::printNum_(Instruction&) incopatible last stack element");
 	uint8_t* dataPtr = stack_.at(dataElem);
 	int64_t num = *reinterpret_cast<int64_t*>(dataPtr);
@@ -956,7 +952,7 @@ std::optional<int64_t> Processor::peekCh_(Instruction&)
 		ch = 0;
 	else
 		std::cin >> ch;
-	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_[BaseTypeId::char_]));
+	uint8_t* ptr = stack_.push(ElementInfo(&baseTypes_["char"]));
 	*reinterpret_cast<char*>(ptr) = ch;
 	return 0;
 }
