@@ -59,6 +59,8 @@ enum class OpCode
 	neq_ // not equals
 };
 
+std::optional<OpCode> parseOpcode(const std::string& str);
+
 enum class Condition
 {
 	eq_,

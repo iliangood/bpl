@@ -3,6 +3,83 @@
 #include <sys/select.h>
 #include <unistd.h>
 
+std::optional<OpCode> parseOpcode(const std::string& str)
+{
+	if(str == "end")
+		return OpCode::end_;
+	else if(str == "call")
+		return OpCode::call_;
+	else if(str == "ret")
+		return OpCode::ret_;
+	else if(str == "init")
+		return OpCode::init_;
+	else if(str == "get")
+		return OpCode::get_;
+	else if(str == "set")
+		return OpCode::set_;
+	else if(str == "valfromstlink")
+		return OpCode::valfromstlink_;
+	else if(str == "valfromarg")
+		return OpCode::valfromarg_;
+	else if(str == "getSublink")
+		return OpCode::getSublink_;
+	else if(str == "if")
+		return OpCode::if_;
+	else if(str == "while")
+		return OpCode::while_;
+	else if(str == "runInstsVec")
+		return OpCode::runInstsVec_;
+	else if(str == "add")
+		return OpCode::add_;
+	else if(str == "sub")
+		return OpCode::sub_;
+	else if(str == "mul")
+		return OpCode::mul_;
+	else if(str == "div")
+		return OpCode::div_;
+	else if(str == "mod")
+		return OpCode::mod_;
+	else if(str == "and")
+		return OpCode::and_;
+	else if(str == "or")
+		return OpCode::or_;
+	else if(str == "not")
+		return OpCode::not_;
+	else if(str == "shl")
+		return OpCode::shl_;
+	else if(str == "shr")
+		return OpCode::shr_;
+	else if(str == "stackRealloc")
+		return OpCode::stackRealloc_;
+	else if(str == "setNoBlockingInput")
+		return OpCode::setNoBlockingInput_;
+	else if(str == "checkBuf")
+		return OpCode::checkBuf_;
+	else if(str == "printCh")
+		return OpCode::printCh_;
+	else if(str == "printNum")
+		return OpCode::printNum_;
+	else if(str == "readCh")
+		return OpCode::readCh_;
+	else if(str == "readNum")
+		return OpCode::readNum_;
+	else if(str == "peekCh")
+		return OpCode::peekCh_;
+	else if(str == "ls")
+		return OpCode::ls_;
+	else if(str == "leq")
+		return OpCode::leq_;
+	else if(str == "bg")
+		return OpCode::bg_;
+	else if(str == "beq")
+		return OpCode::beq_;
+	else if(str == "equ")
+		return OpCode::equ_;
+	else if(str == "neq")
+		return OpCode::neq_;
+	return std::nullopt;
+}
+
 StackIndex::StackIndex(size_t index, Processor* processor, bool isGlobal) : processor_(processor) 
 {
 	if(processor_ == nullptr)

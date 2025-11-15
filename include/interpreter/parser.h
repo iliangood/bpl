@@ -89,7 +89,9 @@ class Parser
 	FunctionScope globalScope_;
 	std::vector<FunctionScope> scopes_;
 
-	Instruction ParseInstruction();
+	std::optional<Argument> parseArgument(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
+
+	Instruction ParseInstruction(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
 public:
 	Parser(Processor processor);
 	
