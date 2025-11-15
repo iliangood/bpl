@@ -5,7 +5,7 @@ Parser::Parser(Processor* processor)
 	: processor_(processor), globalScope_(), scopes_()
 {}
 
-std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end)
+std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end) //TODO:
 {
 	if(*it == end)
 		throw std::runtime_error("Unexpected end of program while parsing argument");
@@ -21,7 +21,7 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 		throw std::runtime_error("Invalid argument format: " + **it);
 	if(parts[0] == "Value")
 	{
-		if(parts[1] == "Function" && parts.size() >= 3)
+		if(parts[1] == "Function" && parts.size() >= 3) //TODO:
 		{
 			Function func;
 			std::vector<Instruction> body;

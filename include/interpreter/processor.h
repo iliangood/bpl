@@ -210,6 +210,8 @@ class Processor
 
 	std::vector<Instruction> program_;
 	BaseTypeVector baseTypes_;
+	std::vector<StructType> structs_;
+	
 	Stack stack_;
 	std::vector<size_t> functionStackStartPositions_;
 	Stack FunctionReturnValues_;
@@ -308,6 +310,19 @@ class Processor
 		return baseTypes_;
 	}
 	bool finished();
+
+	std::vector<StructType>& structs()
+	{
+		return structs_;
+	}
+	const std::vector<StructType>& structs() const
+	{
+		return structs_;
+	}
+	void addStruct(const StructType& structType)
+	{
+		structs_.push_back(structType);
+	}
 };
 
 #endif

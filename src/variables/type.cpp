@@ -43,7 +43,7 @@ bool BaseType::isValid() const
 
 
 
-StructType::StructType(std::string name, const std::vector<TypeVariant>& types, const std::vector<std::string>& fieldNames) : name_(std::move(name)),
+StructType::StructType(const std::vector<TypeVariant>& types, const std::vector<std::string>& fieldNames) : 
 types_(types), fieldNames_(fieldNames), totalSize_(0)
 {
 	for (size_t i = 0; i < types_.size(); ++i)
@@ -55,16 +55,6 @@ types_(types), fieldNames_(fieldNames), totalSize_(0)
 		if(!isValid())
 			throw std::invalid_argument("StructType::StructType(std::string, const std::vector<TypeVariant>&) Invalid parameters");
 	}
-}
-
-std::string StructType::name() const 
-{
-	if(getValidationLevel() >= ValidationLevel::full)
-	{
-		if(!isValid())
-			throw std::runtime_error("StructType::name() called on invalid StructType");
-	}
-	return name_; 
 }
 
 size_t StructType::size() const 
@@ -118,8 +108,6 @@ bool StructType::operator==(const StructType& other) const
 
 bool StructType::isValid() const
 {
-	if(name_.empty())
-		return false;
 	if(types_.empty())
 		return false;
 	if(getValidationLevel() < ValidationLevel::basic)

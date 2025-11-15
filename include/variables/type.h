@@ -143,12 +143,11 @@ public:
 
 class StructType
 {
-	std::string name_;
 	std::vector<TypeVariant> types_;
 	std::vector<std::string> fieldNames_;
 	size_t totalSize_;
 public:
-	StructType(std::string name, const std::vector<TypeVariant>& types, const std::vector<std::string>& fieldNames);
+	StructType(const std::vector<TypeVariant>& types, const std::vector<std::string>& fieldNames);
 	StructType(StructType&&) = default;
 	StructType(const StructType&) = default;
 	StructType& operator=(StructType&&) = default;
@@ -159,7 +158,6 @@ public:
 	bool operator==(const StructType& other) const;
 	bool operator!=(const StructType& other) const { return !(*this == other); }
 
-	std::string name() const;
 	size_t size() const;
 
 	const std::vector<TypeVariant>& types() const;
