@@ -6,14 +6,14 @@ int main(/*int argc, char** argv*/)
 {
 	setValidationLevel(ValidationLevel::basic);
 	Processor proc(1 << 20);
-	/*std::vector<Instruction> program
+	/*std::vector<Instruction> prog
 	{
 		Instruction(OpCode::init_, std::vector<Argument>{Argument(
-			FunctionType(std::vector<TypeVariant>{}, TypeVariant(&proc.baseTypes()[BaseTypeId::void_])) 
+			FunctionType(std::vector<TypeVariant>{}, TypeVariant(&proc.baseTypes()["void"])) 
 		)}),
 		Instruction(OpCode::get_, std::vector<Argument>{Argument(PreStackIndex(0, true))}),
 		Instruction(OpCode::valfromarg_, std::vector<Argument>{Argument(Value(Function( 
-			FunctionType(std::vector<TypeVariant>{}, TypeVariant(&proc.baseTypes()[BaseTypeId::void_])), 
+			FunctionType(std::vector<TypeVariant>{}, TypeVariant(&proc.baseTypes()["void"])), 
 			std::vector<Instruction>
 			{
 				Instruction(OpCode::valfromarg_, std::vector<Argument>{Argument(Value('H'))}),
@@ -54,7 +54,7 @@ int main(/*int argc, char** argv*/)
 	};*/
 
 
-	std::vector<Instruction> prog1
+	std::vector<Instruction> prog
 	{
 		Instruction(OpCode::readNum_, std::vector<Argument>{}),
 		Instruction(OpCode::readCh_, std::vector<Argument>{}),
@@ -172,7 +172,7 @@ int main(/*int argc, char** argv*/)
 		})
 	};
 
-	proc.setProgram(std::move(prog1));
+	proc.setProgram(std::move(prog));
 	proc.run();
 	return 0;
 }

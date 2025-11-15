@@ -63,16 +63,6 @@ enum class OpCode
 
 std::optional<OpCode> parseOpcode(const std::string& str);
 
-enum class Condition
-{
-	eq_,
-	neq_,
-	lt_,
-	lte_,
-	gt_,
-	gte_
-};
-
 class Processor;
 
 class PreStackIndex
@@ -146,9 +136,9 @@ public:
 	const std::vector<Instruction>& body() const { return body_; }
 };
 
-typedef std::variant<int64_t, char, Function> Value;
+typedef std::variant<int64_t, char, bool, double, Function> Value;
 
-typedef std::variant<Condition, TypeVariant, std::vector<Instruction>, PreStackIndex, Value> Argument;
+typedef std::variant<TypeVariant, std::vector<Instruction>, PreStackIndex, Value> Argument;
 
 
 
@@ -298,6 +288,17 @@ class Processor
 	void addStruct(const StructType& structType, std::string name)
 	{
 		structs_.insert({name, structType});
+	}
+
+	std::optional<TypeVariant> typeByName(const std::string& name) const
+	{
+		auto baseIt = baseTypes_.find(name);
+		if(baseIt != baseTypes_.end())
+			return TypeVariant(&baseIt->second);
+		auto structIt = structs_.find(name);
+		if(structIt != structs_.end())
+			return TypeVariant(&structIt->second);
+		return std::nullopt;
 	}
 };
 

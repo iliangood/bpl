@@ -91,7 +91,7 @@ class Parser
 
 	std::optional<Argument> parseArgument(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
 
-	Instruction ParseInstruction(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
+	Instruction parseInstruction(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
 public:
 	Parser(Processor* processor);
 	
