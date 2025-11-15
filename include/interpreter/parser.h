@@ -93,7 +93,7 @@ class Parser
 
 	Instruction ParseInstruction(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
 public:
-	Parser(Processor processor);
+	Parser(Processor* processor);
 	
 	std::vector<Instruction> parse(std::string_view programm);
 };
