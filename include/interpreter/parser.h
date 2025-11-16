@@ -10,41 +10,29 @@
 
 class Variable
 {
-	std::string name_;
 	TypeVariant type_;
-	size_t offset_;
+	PreStackIndex index_;
 public:
-	Variable(std::string_view name, const TypeVariant& type, size_t offset) : name_(name), type_(type), offset_(offset) {}
-	Variable(std::string&& name, const TypeVariant& type, size_t offset) : name_(std::move(name)), type_(type), offset_(offset) {}
-	size_t offset() const { return offset_; }
-	std::string& name() { return name_; }
-	const std::string& name() const { return name_; }
+	Variable(const TypeVariant& type, PreStackIndex index) : type_(type), index_(index) {}
+	PreStackIndex index() const { return index_; }
 	const TypeVariant& type() const { return type_; }
-	std::pair<std::string, size_t> toPair() const
-	{
-		return {name_, offset_};
-	}
 };
 
 class BlockScope
 {
-	std::unordered_map<std::string, size_t> variables_;
+	std::unordered_map<std::string, Variable> variables_;
 public:
 	BlockScope() {}
-	void insert(const Variable& variable)
+	void insert(const Variable& variable, std::string_view name)
 	{
-		variables_.insert(variable.toPair());
+		variables_.insert({std::string(name), variable});
 	}
-	std::optional<size_t> find(std::string name) const
+	std::optional<Variable> find(std::string name) const
 	{
-		std::unordered_map<std::string, size_t>::const_iterator it = variables_.find(name);
+		std::unordered_map<std::string, Variable>::const_iterator it = variables_.find(name);
 		if(variables_.end() == it)
 			return std::nullopt;
 		return it->second;
-	}
-	std::optional<size_t> get(std::string name) const
-	{
-		return find(name);
 	}
 };
 
@@ -64,9 +52,9 @@ public:
 	{
 		scopes_.pop_back();
 	}
-	void insert(const Variable& variable)
+	void insert(const Variable& variable, std::string_view name)
 	{
-		scopes_.back().insert(variable);
+		scopes_.back().insert(variable, name);
 	}
 	std::vector<BlockScope>& scopes()
 	{
@@ -76,11 +64,11 @@ public:
 	{
 		return scopes_;
 	}
-	std::optional<size_t> find(std::string name) const 
+	std::optional<Variable> find(std::string_view name) const 
 	{
 		for(std::vector<BlockScope>::const_reverse_iterator it = scopes_.crbegin(); it != scopes_.crend(); ++it)
 		{
-			std::optional<size_t> jt = it->find(name);
+			std::optional<Variable> jt = it->find(std::string(name));
 			if(jt.has_value())
 				return jt.value();
 		}
@@ -94,7 +82,7 @@ class Parser
 	
 	std::vector<FunctionScope> scopes_;
 
-	std::optional<size_t> findVariable(const std::string& name) const;
+	std::optional<Variable> findVariable(const std::string& name) const;
 
 	std::optional<Argument> parseArgument(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
 	std::vector<Argument> parseArguments(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);

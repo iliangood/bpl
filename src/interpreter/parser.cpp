@@ -15,16 +15,16 @@ Parser::Parser(Processor* processor)
 	: processor_(processor), scopes_()
 {}
 
-std::optional<size_t> Parser::findVariable(const std::string& name) const
+std::optional<Variable> Parser::findVariable(const std::string& name) const
 {
 	const FunctionScope& currentScope = scopes_.back();
-	std::optional<size_t> varIndexOpt = currentScope.find(name);
-	if(varIndexOpt.has_value())
-		return varIndexOpt.value();
+	std::optional<Variable> varOpt = currentScope.find(name);
+	if(varOpt.has_value())
+		return varOpt.value();
 	const FunctionScope& globalScope = scopes_.front();
-	varIndexOpt = globalScope.find(name);
-	if(varIndexOpt.has_value())
-		return varIndexOpt.value();
+	varOpt = globalScope.find(name);
+	if(varOpt.has_value())
+		return varOpt.value();
 	return std::nullopt;
 }
 
@@ -126,7 +126,7 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 		if(!typeOpt.has_value())
 			throw std::runtime_error("Unknown type in Type argument: " + parts[1]);
 		TypeVariant type = typeOpt.value();
-		for(int i = 2; i < parts.size(); ++i)
+		for(size_t i = 2; i < parts.size(); ++i)
 		{
 			if(parts[i].empty())
 				throw std::runtime_error("Empty type name in Type argument: " + **it);
@@ -168,20 +168,13 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 	}
 	else if(parts[0] == "variable")
 	{
-		if(parts.size() != 3)
+		if(parts.size() != 2)
 			throw std::runtime_error("Invalid PreStackIndex argument format: " + **it);
-		std::optional<size_t> varIndexOpt = findVariable(parts[2]);
-		if(!varIndexOpt.has_value())
+		std::optional<Variable> varOpt = findVariable(parts[1]);
+		if(!varOpt.has_value())
 			throw std::runtime_error("Unknown variable name in PreStackIndex argument: " + parts[2]);
-		size_t index = varIndexOpt.value();
-		bool isGlobal = false;
-		if(parts[1] == "global")
-			isGlobal = true;
-		else if(parts[1] == "local")
-			isGlobal = false;
-		else
-			throw std::runtime_error("Invalid PreStackIndex argument scope: " + parts[1]);
-		arg = PreStackIndex(index, isGlobal);
+		Variable var = varOpt.value();
+		arg = var.index();
 		++(*it);
 		return arg;
 	}
@@ -227,7 +220,7 @@ std::vector<Argument> Parser::parseArguments(std::vector<std::string>::const_ite
 	return arguments;
 }
 
-Instruction Parser::parseInstruction(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end)
+Instruction Parser::parseInstruction(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end) //TODO:
 {
 	OpCode opCode;
 	std::vector<Argument> arguments;
@@ -238,14 +231,15 @@ Instruction Parser::parseInstruction(std::vector<std::string>::const_iterator* i
 	if(!opCodeOpt.has_value())
 		throw std::runtime_error("Unknown OpCode in instruction: " + parts[0]);
 	opCode = opCodeOpt.value();
-	if(opCode == OpCode::init_)
+	if(opCode == OpCode::init_) // TODO:
 	{
 		if(parts.size() != 2)
 			throw std::runtime_error("Invalid init instruction format: " + **it);
 		std::string varName = parts[1];
-		std::optional<size_t> varIndexOpt = scopes_.back().find(varName);
-		if(varIndexOpt.has_value())
+		std::optional<Variable> varOpt = scopes_.back().find(varName);
+		if(varOpt.has_value())
 			throw std::runtime_error("Variable already declared in current scope: " + varName);
+		Variable var = varOpt.value();
 		++(*it);
 		arguments = parseArguments(it, end);
 		if(arguments.size() != 1)
@@ -253,8 +247,7 @@ Instruction Parser::parseInstruction(std::vector<std::string>::const_iterator* i
 		if(!std::holds_alternative<TypeVariant>(arguments[0]))
 			throw std::runtime_error("Invalid argument type for init instruction, expected TypeVariant");
 		TypeVariant varType = std::get<TypeVariant>(arguments[0]);
-		processor_->stack_.push(TypeVariant(varType));
-		std::optional<Element> varIndex = processor_->stack_.wholeElementFromEnd(0);
+
 		if(!varIndex.has_value())
 			throw std::runtime_error("Failed to get variable index after init");
 		scopes_.back().insert(Variable(varName, varIndex.value().index()));
