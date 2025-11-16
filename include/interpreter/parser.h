@@ -11,13 +11,15 @@
 class Variable
 {
 	std::string name_;
+	TypeVariant type_;
 	size_t offset_;
 public:
-	Variable(std::string_view name, size_t offset) : name_(name), offset_(offset) {}
-	Variable(std::string&& name, size_t offset) : name_(std::move(name)), offset_(offset) {}
+	Variable(std::string_view name, const TypeVariant& type, size_t offset) : name_(name), type_(type), offset_(offset) {}
+	Variable(std::string&& name, const TypeVariant& type, size_t offset) : name_(std::move(name)), type_(type), offset_(offset) {}
 	size_t offset() const { return offset_; }
 	std::string& name() { return name_; }
 	const std::string& name() const { return name_; }
+	const TypeVariant& type() const { return type_; }
 	std::pair<std::string, size_t> toPair() const
 	{
 		return {name_, offset_};
@@ -50,6 +52,10 @@ class FunctionScope
 {
 	std::vector<BlockScope> scopes_;
 public:
+	FunctionScope()
+	{
+		scopes_.emplace_back();
+	}
 	void inScope()
 	{
 		scopes_.emplace_back();
@@ -86,10 +92,12 @@ class Parser
 {
 	Processor* processor_;
 	
-	FunctionScope globalScope_;
 	std::vector<FunctionScope> scopes_;
 
+	std::optional<size_t> findVariable(const std::string& name) const;
+
 	std::optional<Argument> parseArgument(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
+	std::vector<Argument> parseArguments(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
 
 	Instruction parseInstruction(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
 public:

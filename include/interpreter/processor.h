@@ -173,6 +173,7 @@ class Processor
 {
 	friend class StackIndex;
 	friend class Function;
+	friend class Parser;
 
 	std::vector<Instruction> program_;
 	std::map<std::string, BaseType> baseTypes_;

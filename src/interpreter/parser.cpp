@@ -1,30 +1,48 @@
 #include "interpreter/parser.h"
 #include <sstream>
+#include <ranges>
+
+std::vector<std::string> split(std::string_view str, char delimiter)
+{
+    std::vector<std::string> parts;
+    for (auto part : std::ranges::split_view(str, delimiter)) {
+        parts.emplace_back(part.begin(), part.end());
+    }
+    return parts;
+}
 
 Parser::Parser(Processor* processor)
-	: processor_(processor), globalScope_(), scopes_()
+	: processor_(processor), scopes_()
 {}
+
+std::optional<size_t> Parser::findVariable(const std::string& name) const
+{
+	const FunctionScope& currentScope = scopes_.back();
+	std::optional<size_t> varIndexOpt = currentScope.find(name);
+	if(varIndexOpt.has_value())
+		return varIndexOpt.value();
+	const FunctionScope& globalScope = scopes_.front();
+	varIndexOpt = globalScope.find(name);
+	if(varIndexOpt.has_value())
+		return varIndexOpt.value();
+	return std::nullopt;
+}
 
 std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end) //TODO:
 {
 	if(*it == end)
 		throw std::runtime_error("Unexpected end of program while parsing argument");
 	Argument arg;
-	std::stringstream ss(**it);
-	std::vector<std::string> parts;
-	std::string part;
-	while(std::getline(ss, part, ':'))
-	{
-		parts.push_back(part);
-	}
+	std::vector<std::string> parts = split(**it, ':');
 	if(parts.size() == 0)
 		throw std::runtime_error("Invalid argument format: " + **it);
-	if(parts[0] == "Value")
+	if(parts[0] == "value")
 	{
-		if(parts[1] == "Function" && parts.size() >= 3) //TODO:
+		if(parts[1] == "function" && parts.size() >= 3)
 		{
+			scopes_.emplace_back();
 			Function func;
-			std::vector<Instruction> body;
+			std::vector<Instruction>& body = func.body();
 			FunctionType& funcType = func.type();
 			std::vector<TypeVariant>& argTypes = funcType.argumentsTypes();
 			std::optional<TypeVariant> returnTypeOpt = processor_->typeByName(parts[2]);
@@ -39,13 +57,17 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 				argTypes.push_back(argTypeOpt.value());
 			}
 			++(*it);
-			while(**it != "EndFunction")
+			while(**it != "endFunction")
 			{
 				std::optional<Instruction> instrOpt = parseInstruction(it, end);
 				if(!instrOpt.has_value())
 					throw std::runtime_error("Unexpected end of program while parsing Function Value argument body");
 				body.push_back(instrOpt.value());
+				++(*it);
 			}
+			++(*it);
+			scopes_.pop_back();
+			arg = func;
 			
 			return arg;
 		}
@@ -98,18 +120,144 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 		++(*it);
 		return arg;
 	}
+	else if(parts[0] == "type")
+	{
+		std::optional<TypeVariant> typeOpt = processor_->typeByName(parts[1]);
+		if(!typeOpt.has_value())
+			throw std::runtime_error("Unknown type in Type argument: " + parts[1]);
+		TypeVariant type = typeOpt.value();
+		for(int i = 2; i < parts.size(); ++i)
+		{
+			if(parts[i].empty())
+				throw std::runtime_error("Empty type name in Type argument: " + **it);
+			if(parts[i] == "ptr")
+			{
+				type = PointerType(typeOpt.value());
+				if(!type.isValid())
+					throw std::runtime_error("Invalid PointerType in Type argument: " + **it);
+			}
+			else if(parts[i] == "link")
+			{
+				type = LinkType(typeOpt.value());
+				if(!type.isValid())
+					throw std::runtime_error("Invalid LinkType in Type argument: " + **it);
+			}
+			else if(parts[i].starts_with("array"))
+			{
+				size_t pos = parts[i].find('[');
+				size_t pos2 = parts[i].find(']');
+				if(pos == std::string::npos || pos2 == std::string::npos || pos2 <= pos + 1)
+					throw std::runtime_error("Invalid ArrayType format in Type argument: " + parts[i]);
+				std::string countStr = parts[i].substr(pos + 1, pos2 - pos - 1);
+				size_t count = std::stoull(countStr);
+				type = ArrayType(typeOpt.value(), count);
+				if(!type.isValid())
+					throw std::runtime_error("Invalid ArrayType in Type argument: " + **it);
+			}
+			else
+			{
+				throw std::runtime_error("Unknown type modifier in Type argument: " + parts[i]);
+			}
+			
+				
+		}
+		
+		arg = typeOpt.value();
+		++(*it);
+		return arg;
+	}
+	else if(parts[0] == "variable")
+	{
+		if(parts.size() != 3)
+			throw std::runtime_error("Invalid PreStackIndex argument format: " + **it);
+		std::optional<size_t> varIndexOpt = findVariable(parts[2]);
+		if(!varIndexOpt.has_value())
+			throw std::runtime_error("Unknown variable name in PreStackIndex argument: " + parts[2]);
+		size_t index = varIndexOpt.value();
+		bool isGlobal = false;
+		if(parts[1] == "global")
+			isGlobal = true;
+		else if(parts[1] == "local")
+			isGlobal = false;
+		else
+			throw std::runtime_error("Invalid PreStackIndex argument scope: " + parts[1]);
+		arg = PreStackIndex(index, isGlobal);
+		++(*it);
+		return arg;
+	}
+	else if(parts[0] == "instructions")
+	{
+		++(*it);
+		std::vector<Instruction> instructions;
+		scopes_.back().inScope();
+		while(*it != end && **it != "endInstructions")
+		{
+			std::optional<Instruction> instrOpt = parseInstruction(it, end);
+			if(!instrOpt.has_value())
+				throw std::runtime_error("Unexpected end of program while parsing Instructions argument");
+			instructions.push_back(instrOpt.value());
+			++(*it);
+		}
+		if(*it == end)
+			throw std::runtime_error("Unexpected end of program while parsing Instructions argument");
+		++(*it); 
+		arg = instructions;
+		scopes_.back().outScope();
+		return arg;
+	}
+	else
+	{
+		throw std::runtime_error("Unknown argument type: " + parts[0]);
+	}
+}
+
+std::vector<Argument> Parser::parseArguments(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end)
+{
+	std::vector<Argument> arguments;
+	while(**it != ")")
+	{
+		std::optional<Argument> argOpt = parseArgument(it, end);
+		if(!argOpt.has_value())
+			throw std::runtime_error("Cannot parse argument: " + **it);
+		arguments.push_back(argOpt.value());
+		++(*it);
+		if(*it == end)
+			throw std::runtime_error("Unexpected end of program while parsing arguments");
+	}
+	return arguments;
 }
 
 Instruction Parser::parseInstruction(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end)
 {
 	OpCode opCode;
 	std::vector<Argument> arguments;
-	if(*it == end)
-		throw std::runtime_error("Unexpected end of program while parsing instruction");
-	std::optional<OpCode> opCodeOpt = parseOpcode(**it);
+	std::vector<std::string> parts = split(**it, ':');
+	if(parts.size() == 0)
+		throw std::runtime_error("Invalid instruction format: " + **it);
+	std::optional<OpCode> opCodeOpt = parseOpcode(parts[0]);
 	if(!opCodeOpt.has_value())
-		throw std::runtime_error("Unknown opcode: " + **it);
+		throw std::runtime_error("Unknown OpCode in instruction: " + parts[0]);
 	opCode = opCodeOpt.value();
-	++(*it);
-
+	if(opCode == OpCode::init_)
+	{
+		if(parts.size() != 2)
+			throw std::runtime_error("Invalid init instruction format: " + **it);
+		std::string varName = parts[1];
+		std::optional<size_t> varIndexOpt = scopes_.back().find(varName);
+		if(varIndexOpt.has_value())
+			throw std::runtime_error("Variable already declared in current scope: " + varName);
+		++(*it);
+		arguments = parseArguments(it, end);
+		if(arguments.size() != 1)
+			throw std::runtime_error("Invalid number of arguments for init instruction: " + std::to_string(arguments.size()));
+		if(!std::holds_alternative<TypeVariant>(arguments[0]))
+			throw std::runtime_error("Invalid argument type for init instruction, expected TypeVariant");
+		TypeVariant varType = std::get<TypeVariant>(arguments[0]);
+		processor_->stack_.push(TypeVariant(varType));
+		std::optional<Element> varIndex = processor_->stack_.wholeElementFromEnd(0);
+		if(!varIndex.has_value())
+			throw std::runtime_error("Failed to get variable index after init");
+		scopes_.back().insert(Variable(varName, varIndex.value().index()));
+		return Instruction(opCode, arguments);
+	}
 }
