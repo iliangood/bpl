@@ -81,6 +81,7 @@ class Parser
 	Processor* processor_;
 	
 	std::vector<FunctionScope> scopes_;
+	std::vector<size_t> currentFunctionOffsets_;
 
 	std::optional<Variable> findVariable(const std::string& name) const;
 

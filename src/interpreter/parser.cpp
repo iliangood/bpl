@@ -239,7 +239,6 @@ Instruction Parser::parseInstruction(std::vector<std::string>::const_iterator* i
 		std::optional<Variable> varOpt = scopes_.back().find(varName);
 		if(varOpt.has_value())
 			throw std::runtime_error("Variable already declared in current scope: " + varName);
-		Variable var = varOpt.value();
 		++(*it);
 		arguments = parseArguments(it, end);
 		if(arguments.size() != 1)
@@ -248,9 +247,9 @@ Instruction Parser::parseInstruction(std::vector<std::string>::const_iterator* i
 			throw std::runtime_error("Invalid argument type for init instruction, expected TypeVariant");
 		TypeVariant varType = std::get<TypeVariant>(arguments[0]);
 
-		if(!varIndex.has_value())
-			throw std::runtime_error("Failed to get variable index after init");
-		scopes_.back().insert(Variable(varName, varIndex.value().index()));
+		size_t varOffset = currentFunctionOffsets_.back();
+		currentFunctionOffsets_.back() += varType.elementCount();
+		scopes_.back().insert(Variable(varType, PreStackIndex(varOffset)), varName);
 		return Instruction(opCode, arguments);
 	}
 }
