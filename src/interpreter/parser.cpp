@@ -220,7 +220,7 @@ std::vector<Argument> Parser::parseArguments(std::vector<std::string>::const_ite
 	return arguments;
 }
 
-Instruction Parser::parseInstruction(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end) //TODO:
+Instruction Parser::parseInstruction(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end) //TODO: check errors
 {
 	OpCode opCode;
 	std::vector<Argument> arguments;
@@ -252,4 +252,6 @@ Instruction Parser::parseInstruction(std::vector<std::string>::const_iterator* i
 		scopes_.back().insert(Variable(varType, PreStackIndex(varOffset)), varName);
 		return Instruction(opCode, arguments);
 	}
+	arguments = parseArguments(it, end);
+	return Instruction(opCode, arguments);
 }
