@@ -1,6 +1,7 @@
 #include "interpreter/parser.h"
 #include <sstream>
 #include <ranges>
+#include <algorithm>
 
 std::vector<std::string> split(std::string_view str, char delimiter)
 {
@@ -256,10 +257,31 @@ Instruction Parser::parseInstruction(std::vector<std::string>::const_iterator* i
 	return Instruction(opCode, arguments);
 }
 
+std::string trim(std::string&& s)
+{
+    if (s.empty()) return s;
+
+    auto is_space = [](unsigned char c) { return std::isspace(c); };
+
+    std::string::iterator first = std::find_if_not(s.begin(), s.end(), is_space);
+    if (first == s.end()) {
+        return {};
+    }
+
+    std::string::iterator last = std::find_if_not(s.rbegin(), s.rend(), is_space).base();
+
+
+    return s.substr(std::distance(s.begin(), first), std::distance(first, last));
+}
+
 std::vector<Instruction> Parser::parse(std::string_view programm) //TODO:
 {
 	std::vector<Instruction> instructions;
 	std::vector<std::string> lines = split(programm, '\n');
+	for(std::string& line : lines)
+	{
+		line = trim(std::move(line));
+	}
 	scopes_.emplace_back();
 	currentFunctionOffsets_.push_back(0);
 	for(auto it = lines.cbegin(); it != lines.cend(); ++it)
