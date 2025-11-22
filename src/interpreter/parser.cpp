@@ -294,3 +294,18 @@ std::vector<Instruction> Parser::parse(std::string_view programm) //TODO:
 	return instructions;
 	
 }
+
+std::vector<Instruction> Parser::parse(const std::vector<std::string>& programm)
+{
+	std::vector<Instruction> instructions;
+	scopes_.emplace_back();
+	currentFunctionOffsets_.push_back(0);
+	for(auto it = programm.cbegin(); it != programm.cend(); ++it)
+	{
+		std::optional<Instruction> instrOpt = parseInstruction(&it, programm.cend());
+		if(!instrOpt.has_value())
+			throw std::runtime_error("Cannot parse instruction: " + *it);
+		instructions.push_back(instrOpt.value());
+	}
+	return instructions;
+}

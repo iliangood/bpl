@@ -93,6 +93,7 @@ public:
 	Parser(Processor* processor);
 	
 	std::vector<Instruction> parse(std::string_view programm);
+	std::vector<Instruction> parse(const std::vector<std::string>& programm);
 };
 
 
