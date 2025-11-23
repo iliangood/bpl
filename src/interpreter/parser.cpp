@@ -109,14 +109,14 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 				throw std::runtime_error("Invalid bool Value argument format: " + **it);
 			}
 		}
-		if(parts[1] == "double")
+		else if(parts[1] == "double")
 		{
 			double value = std::stod(parts[2]);
 			arg = Value(value);
 		}
 		else
 		{
-			throw std::runtime_error("Unknown Value type: " + parts[1]);
+			throw std::runtime_error("Unknown Value type: \"" + parts[1] + "\"");
 		}
 		++(*it);
 		return arg;
@@ -201,7 +201,7 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 	}
 	else
 	{
-		throw std::runtime_error("Unknown argument type: " + parts[0]);
+		return std::nullopt;
 	}
 }
 
@@ -253,6 +253,7 @@ Instruction Parser::parseInstruction(std::vector<std::string>::const_iterator* i
 		scopes_.back().insert(Variable(varType, PreStackIndex(varOffset)), varName);
 		return Instruction(opCode, arguments);
 	}
+	++(*it);
 	arguments = parseArguments(it, end);
 	return Instruction(opCode, arguments);
 }
