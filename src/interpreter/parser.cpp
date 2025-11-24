@@ -208,21 +208,21 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 std::vector<Argument> Parser::parseArguments(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end)
 {
 	std::vector<Argument> arguments;
-	while(**it != ")")
+	while(*it != end)
 	{
+		//std::cout << **it << std::endl;
 		std::optional<Argument> argOpt = parseArgument(it, end);
 		if(!argOpt.has_value())
-			throw std::runtime_error("Cannot parse argument: " + **it);
+			return arguments;
 		arguments.push_back(argOpt.value());
-		++(*it);
-		if(*it == end)
-			throw std::runtime_error("Unexpected end of program while parsing arguments");
+		//std::cout << **it << std::endl;
 	}
 	return arguments;
 }
 
 Instruction Parser::parseInstruction(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end) //TODO: check errors
 {
+	//std::cout << **it << std::endl;
 	OpCode opCode;
 	std::vector<Argument> arguments;
 	std::vector<std::string> parts = split(**it, ':');
@@ -301,8 +301,11 @@ std::vector<Instruction> Parser::parse(const std::vector<std::string>& programm)
 	std::vector<Instruction> instructions;
 	scopes_.emplace_back();
 	currentFunctionOffsets_.push_back(0);
-	for(auto it = programm.cbegin(); it != programm.cend(); ++it)
+	std::vector<std::string>::const_iterator it = programm.cbegin();
+	while(it != programm.cend())
 	{
+		//std::cout << "Parsing line: " << std::endl;
+		//std::cout << *it << std::endl;
 		std::optional<Instruction> instrOpt = parseInstruction(&it, programm.cend());
 		if(!instrOpt.has_value())
 			throw std::runtime_error("Cannot parse instruction: " + *it);

@@ -33,9 +33,10 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	std::string path = argv[1];
-	std::vector<std::string> code = readFile(path);
+	std::vector<std::string> code = readFile("../test.bpl");//readFile(path);
 	Parser parser(&proc);
-	proc.setProgram(parser.parse(code));
+	std::vector<Instruction> prog = parser.parse(code);
+	proc.setProgram(prog);
 	proc.run();
 	return 0;
 }

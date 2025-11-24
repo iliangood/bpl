@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28.3)
 project(bpl)
 
-add_compile_options(-std=c++20 -Wall -Wextra -Wpedantic)
+add_compile_options(-std=c++20 -Wall -Wextra -Wpedantic -Werror -O0 -g)
 
 include_directories(include)
 
