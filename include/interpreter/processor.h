@@ -72,8 +72,9 @@ class PreStackIndex
 public:
 	PreStackIndex(size_t index, bool isGlobal = false) : index_(index), global_(isGlobal) {}
 	size_t index() { return index_; }
-	bool isGlobal() { return global_; }
-	bool global() { return global_; }
+	bool isGlobal() const { return global_; }
+	bool global() const { return global_; }
+	bool& global() { return global_; }
 };
 
 class StackIndex

@@ -1082,6 +1082,7 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 std::optional<int64_t> Processor::run()
 {
 	//std::cout << "start execution" << std::endl;
+	functionStackStartPositions_.push_back(0);
 	for(Instruction& inst : program_)
 	{
 		//std::cout << "executing" << std::endl;
@@ -1091,6 +1092,7 @@ std::optional<int64_t> Processor::run()
 			return 0;
 		execute(inst);
 	}
+	functionStackStartPositions_.pop_back();
 	return 0;
 }
 

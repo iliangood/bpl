@@ -14,8 +14,10 @@ class Variable
 	PreStackIndex index_;
 public:
 	Variable(const TypeVariant& type, PreStackIndex index) : type_(type), index_(index) {}
-	PreStackIndex index() const { return index_; }
+	const PreStackIndex& index() const { return index_; }
+	PreStackIndex& index() { return index_; }
 	const TypeVariant& type() const { return type_; }
+	TypeVariant& type() { return type_; }
 };
 
 class BlockScope
@@ -89,6 +91,7 @@ class Parser
 	std::vector<Argument> parseArguments(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
 
 	Instruction parseInstruction(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
+	TypeVariant parseType(const std::string& typeStr) const;
 public:
 	Parser(Processor* processor);
 	

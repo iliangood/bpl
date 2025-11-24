@@ -59,6 +59,9 @@ public:
 	const std::vector<TypeVariant>& argumentsTypes() const;
 	std::vector<TypeVariant>& argumentsTypes();
 
+	// Safely set return type (allocates internal returnType_)
+	void setReturnType(const TypeVariant& rt);
+
 	size_t elemetCount() const { return 1; }
 	std::vector<size_t> elementSubIndexes() const { return {0}; }
 };
@@ -184,43 +187,45 @@ public:
 	TypeVariant& operator=(TypeVariant&&) noexcept = default;
 
 
-TypeVariant(const BaseType* ptr)
-	: Base(std::in_place_type<const BaseType*>, ptr)
-{}
+	TypeVariant(const BaseType* ptr)
+		: Base(std::in_place_type<const BaseType*>, ptr)
+	{}
 
-TypeVariant(const StructType* ptr)
-	: Base(std::in_place_type<const StructType*>, ptr)
-{}
+	TypeVariant(const StructType* ptr)
+		: Base(std::in_place_type<const StructType*>, ptr)
+	{}
 
-template<typename T,
-		 typename = std::enable_if_t<
-			!std::is_same_v<std::decay_t<T>, TypeVariant> &&
-			!std::is_same_v<std::decay_t<T>, BaseType*> &&
-			!std::is_same_v<std::decay_t<T>, const BaseType*> &&
-			!std::is_same_v<std::decay_t<T>, const StructType*> &&
-			!std::is_same_v<std::decay_t<T>, StructType*> &&
-			(std::is_same_v<std::decay_t<T>, FunctionType> ||
-			std::is_same_v<std::decay_t<T>, PointerType> ||
-			std::is_same_v<std::decay_t<T>, ArrayType> ||
-			std::is_same_v<std::decay_t<T>, LinkType>)
-		 >>
-TypeVariant(T&& value)
-	: Base(std::in_place_type<std::decay_t<T>>, std::forward<T>(value))
-{}
 	template<typename T,
-		 typename = std::enable_if_t<
-			 !std::is_same_v<std::decay_t<T>, TypeVariant> &&
-			 (std::is_same_v<std::decay_t<T>, BaseType*> || 
-			  std::is_same_v<std::decay_t<T>, const BaseType*> ||
-			  std::is_same_v<std::decay_t<T>, const StructType*> ||
-			  std::is_same_v<std::decay_t<T>, FunctionType> ||
-			  std::is_same_v<std::decay_t<T>, PointerType> ||
-			  std::is_same_v<std::decay_t<T>, ArrayType> ||
-			  std::is_same_v<std::decay_t<T>, LinkType>)
-		 >>
-TypeVariant(T& value)
-	: Base(std::in_place_type<std::decay_t<T>>, value)
-{}
+			typename = std::enable_if_t<
+				!std::is_same_v<std::decay_t<T>, TypeVariant> &&
+				!std::is_same_v<std::decay_t<T>, BaseType*> &&
+				!std::is_same_v<std::decay_t<T>, const BaseType*> &&
+				!std::is_same_v<std::decay_t<T>, const StructType*> &&
+				!std::is_same_v<std::decay_t<T>, StructType*> &&
+				(std::is_same_v<std::decay_t<T>, FunctionType> ||
+				std::is_same_v<std::decay_t<T>, PointerType> ||
+				std::is_same_v<std::decay_t<T>, ArrayType> ||
+				std::is_same_v<std::decay_t<T>, LinkType>)
+			>>
+	TypeVariant(T&& value)
+		: Base(std::in_place_type<std::decay_t<T>>, std::forward<T>(value))
+	{}
+		template<typename T,
+			typename = std::enable_if_t<
+				!std::is_same_v<std::decay_t<T>, TypeVariant> &&
+				(std::is_same_v<std::decay_t<T>, BaseType*> || 
+				std::is_same_v<std::decay_t<T>, const BaseType*> ||
+				std::is_same_v<std::decay_t<T>, const StructType*> ||
+				std::is_same_v<std::decay_t<T>, FunctionType> ||
+				std::is_same_v<std::decay_t<T>, PointerType> ||
+				std::is_same_v<std::decay_t<T>, ArrayType> ||
+				std::is_same_v<std::decay_t<T>, LinkType>)
+			>>
+	TypeVariant(T& value)
+		: Base(std::in_place_type<std::decay_t<T>>, value)
+	{}
+
+	~TypeVariant() = default;
 
 
 	bool isValid() const;

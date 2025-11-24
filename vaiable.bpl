@@ -1,0 +1,11 @@
+init:a
+type:int64
+get
+variable:a
+valfromarg
+value:int64:100
+set
+get
+variable:a
+valfromstlink
+printNum

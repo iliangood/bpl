@@ -25,8 +25,20 @@ std::optional<Variable> Parser::findVariable(const std::string& name) const
 	const FunctionScope& globalScope = scopes_.front();
 	varOpt = globalScope.find(name);
 	if(varOpt.has_value())
-		return varOpt.value();
+	{
+		Variable& var = varOpt.value();
+		var.index().global() = true;
+		return var;
+	}
 	return std::nullopt;
+}
+
+TypeVariant Parser::typeByName(const std::string& name) const
+{
+	std::optional<TypeVariant> typeOpt = processor_->typeByName(name);
+	if(!typeOpt.has_value())
+		throw std::runtime_error("Unknown type name: " + name);
+	return typeOpt.value();
 }
 
 std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end) //TODO:
@@ -36,28 +48,28 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 	Argument arg;
 	std::vector<std::string> parts = split(**it, ':');
 	if(parts.size() == 0)
-		throw std::runtime_error("Invalid argument format: " + **it);
+		throw std::runtime_error("Invalid argument format: \"" + **it + "\"");
 	if(parts[0] == "value")
 	{
 		if(parts[1] == "function" && parts.size() >= 3)
 		{
 			scopes_.emplace_back();
-			Function func;
-			std::vector<Instruction>& body = func.body();
-			FunctionType& funcType = func.type();
-			std::vector<TypeVariant>& argTypes = funcType.argumentsTypes();
+
+			std::vector<TypeVariant> localArgTypes;
 			std::optional<TypeVariant> returnTypeOpt = processor_->typeByName(parts[2]);
 			if(!returnTypeOpt.has_value())
 				throw std::runtime_error("Unknown return type in Function Value argument: " + parts[2]);
-			funcType.returnType() = returnTypeOpt.value();
 			for(size_t i = 3; i < parts.size(); ++i)
 			{
 				std::optional<TypeVariant> argTypeOpt = processor_->typeByName(parts[i]);
 				if(!argTypeOpt.has_value())
 					throw std::runtime_error("Unknown argument type in Function Value argument: " + parts[i]);
-				argTypes.push_back(argTypeOpt.value());
+				localArgTypes.push_back(argTypeOpt.value());
 			}
 			++(*it);
+
+			Function func(FunctionType(localArgTypes, returnTypeOpt.value()), std::vector<Instruction>());
+			std::vector<Instruction>& body = func.body();
 			while(**it != "endFunction")
 			{
 				std::optional<Instruction> instrOpt = parseInstruction(it, end);
@@ -68,7 +80,8 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 			}
 			++(*it);
 			scopes_.pop_back();
-			arg = func;
+
+			arg = Value(std::move(func));
 			
 			return arg;
 		}
@@ -154,6 +167,11 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 				type = ArrayType(typeOpt.value(), count);
 				if(!type.isValid())
 					throw std::runtime_error("Invalid ArrayType in Type argument: " + **it);
+			}
+			else if(parts[i] == "func")
+			{
+				type = FunctionType();
+				
 			}
 			else
 			{
@@ -265,11 +283,15 @@ std::string trim(std::string&& s)
     auto is_space = [](unsigned char c) { return std::isspace(c); };
 
     std::string::iterator first = std::find_if_not(s.begin(), s.end(), is_space);
-    if (first == s.end()) {
+    if (first == s.end())
         return {};
-    }
 
     std::string::iterator last = std::find_if_not(s.rbegin(), s.rend(), is_space).base();
+	if(last != s.end())
+	{
+		if(*(last-1) == ':')
+			++last;
+	}
 
 
     return s.substr(std::distance(s.begin(), first), std::distance(first, last));
@@ -279,13 +301,20 @@ std::vector<Instruction> Parser::parse(std::string_view programm) //TODO:
 {
 	std::vector<Instruction> instructions;
 	std::vector<std::string> lines = split(programm, '\n');
-	for(std::string& line : lines)
+	for(size_t i = 0, j = 0; i < lines.size(); ++i , ++j)
 	{
-		line = trim(std::move(line));
+		std::string line = trim(std::move(lines[i]));
+		if(line.empty())
+		{
+			--j;
+			continue;
+		}
+		lines[j] = line;
 	}
 	scopes_.emplace_back();
 	currentFunctionOffsets_.push_back(0);
-	for(auto it = lines.cbegin(); it != lines.cend(); ++it)
+	std::vector<std::string>::const_iterator it = lines.cbegin();
+	while(it != lines.cend())
 	{
 		std::optional<Instruction> instrOpt = parseInstruction(&it, lines.cend());
 		if(!instrOpt.has_value())
@@ -298,15 +327,22 @@ std::vector<Instruction> Parser::parse(std::string_view programm) //TODO:
 
 std::vector<Instruction> Parser::parse(const std::vector<std::string>& programm)
 {
+	std::vector<std::string> lines;
+	lines.reserve(programm.size());
+	for(size_t i = 0; i < programm.size(); ++i)
+	{
+		std::string line = trim(std::string(programm[i]));
+		if(line.empty())
+			continue;
+		lines.push_back(line);
+	}
 	std::vector<Instruction> instructions;
 	scopes_.emplace_back();
 	currentFunctionOffsets_.push_back(0);
-	std::vector<std::string>::const_iterator it = programm.cbegin();
-	while(it != programm.cend())
+	std::vector<std::string>::const_iterator it = lines.cbegin();
+	while(it != lines.cend())
 	{
-		//std::cout << "Parsing line: " << std::endl;
-		//std::cout << *it << std::endl;
-		std::optional<Instruction> instrOpt = parseInstruction(&it, programm.cend());
+		std::optional<Instruction> instrOpt = parseInstruction(&it, lines.cend());
 		if(!instrOpt.has_value())
 			throw std::runtime_error("Cannot parse instruction: " + *it);
 		instructions.push_back(instrOpt.value());

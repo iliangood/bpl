@@ -605,6 +605,14 @@ std::vector<TypeVariant>& FunctionType::argumentsTypes()
 	return argumentsTypes_; 
 }
 
+void FunctionType::setReturnType(const TypeVariant& rt)
+{
+	if(returnType_ != nullptr)
+		*returnType_ = rt;
+	else
+		returnType_ = std::make_unique<TypeVariant>(rt);
+}
+
 size_t FunctionType::size() const 
 {
 	return sizeof(std::vector<Instruction>*);
