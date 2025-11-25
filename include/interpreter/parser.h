@@ -80,6 +80,8 @@ public:
 
 class Parser
 {
+	TypeVariant typeByName(const std::string& name) const;
+
 	Processor* processor_;
 	
 	std::vector<FunctionScope> scopes_;
