@@ -33,7 +33,7 @@ std::optional<Variable> Parser::findVariable(const std::string& name) const
 	return std::nullopt;
 }
 
-TypeVariant Parser::typeByName(const std::string& name) const
+TypeVariant Parser::typeByName(const std::string& name) const // TODO:
 {
 	std::optional<TypeVariant> typeOpt = processor_->typeByName(name);
 	if(!typeOpt.has_value())
