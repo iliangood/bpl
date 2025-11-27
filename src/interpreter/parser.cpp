@@ -35,10 +35,47 @@ std::optional<Variable> Parser::findVariable(const std::string& name) const
 
 TypeVariant Parser::typeByName(const std::string& name) const // TODO:
 {
-	std::optional<TypeVariant> typeOpt = processor_->typeByName(name);
+	size_t end = name.find_first_of("*[&");
+	std::string baseTypeName = name.substr(0, end);
+	std::optional<TypeVariant> typeOpt = processor_->typeByName(baseTypeName);
 	if(!typeOpt.has_value())
-		throw std::runtime_error("Unknown type name: " + name);
-	return typeOpt.value();
+		throw std::runtime_error("Unknown type name: " + baseTypeName);
+	TypeVariant type = typeOpt.value();
+	size_t pos = end;;
+	while(pos < name.size())
+	{
+		if(name[pos] == '*')
+		{
+			type = PointerType(type);
+			if(!type.isValid())
+				throw std::runtime_error("Invalid PointerType for type name: " + name);
+			++pos;
+		}
+		else if(name[pos] == '&')
+		{
+			type = LinkType(type);
+			if(!type.isValid())
+				throw std::runtime_error("Invalid LinkType for type name: " + name);
+			++pos;
+		}
+		else if(name[pos] == '[')
+		{
+			size_t pos2 = name.find(']', pos);
+			if(pos2 == std::string::npos || pos2 <= pos + 1)
+				throw std::runtime_error("Invalid ArrayType format in type name: " + name);
+			std::string countStr = name.substr(pos + 1, pos2 - pos - 1);
+			size_t count = std::stoull(countStr);
+			type = ArrayType(type, count);
+			if(!type.isValid())
+				throw std::runtime_error("Invalid ArrayType for type name: " + name);
+			pos = pos2 + 1;
+		}
+		else
+		{
+			throw std::runtime_error("Unknown type modifier in type name: " + name);
+		}
+	}
+	return type;
 }
 
 std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end) //TODO:
