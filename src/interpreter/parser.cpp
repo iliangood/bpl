@@ -33,7 +33,7 @@ std::optional<Variable> Parser::findVariable(const std::string& name) const
 	return std::nullopt;
 }
 
-TypeVariant Parser::typeByName(const std::string& name) const // TODO:
+TypeVariant Parser::parseType(const std::string& name) const // TODO:
 {
 	size_t end = name.find_first_of("*[&");
 	std::string baseTypeName = name.substr(0, end);
@@ -93,12 +93,13 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 			scopes_.emplace_back();
 
 			std::vector<TypeVariant> localArgTypes;
-			std::optional<TypeVariant> returnTypeOpt = processor_->typeByName(parts[2]);
+			localArgTypes.reserve(parts.size() - 3);
+			std::optional<TypeVariant> returnTypeOpt = parseType(parts[2]);
 			if(!returnTypeOpt.has_value())
 				throw std::runtime_error("Unknown return type in Function Value argument: " + parts[2]);
 			for(size_t i = 3; i < parts.size(); ++i)
 			{
-				std::optional<TypeVariant> argTypeOpt = processor_->typeByName(parts[i]);
+				std::optional<TypeVariant> argTypeOpt = parseType(parts[i]);
 				if(!argTypeOpt.has_value())
 					throw std::runtime_error("Unknown argument type in Function Value argument: " + parts[i]);
 				localArgTypes.push_back(argTypeOpt.value());
@@ -107,7 +108,7 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 
 			Function func(FunctionType(localArgTypes, returnTypeOpt.value()), std::vector<Instruction>());
 			std::vector<Instruction>& body = func.body();
-			while(**it != "endFunction")
+			while(**it != "end")
 			{
 				std::optional<Instruction> instrOpt = parseInstruction(it, end);
 				if(!instrOpt.has_value())

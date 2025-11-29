@@ -80,7 +80,6 @@ public:
 
 class Parser
 {
-	TypeVariant typeByName(const std::string& name) const;
 
 	Processor* processor_;
 	
@@ -93,7 +92,7 @@ class Parser
 	std::vector<Argument> parseArguments(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
 
 	Instruction parseInstruction(std::vector<std::string>::const_iterator* it, const std::vector<std::string>::const_iterator& end);
-	TypeVariant parseType(const std::string& typeStr) const;
+	TypeVariant parseType(const std::string& name) const;
 public:
 	Parser(Processor* processor);
 	
