@@ -2,5 +2,6 @@ valfromarg
 value:function:void
 	valfromarg
 	value:char:H
-endFunction
+	printCh // Пропускает это
+end
 call
