@@ -1,7 +1,48 @@
+init:hello
+type:function:void
+get
+variable:hello
 valfromarg
 value:function:void
 	valfromarg
 	value:char:H
-	printCh // Пропускает это
+	printCh
+	valfromarg
+	value:char:e
+	printCh
+	valfromarg
+	value:char:l
+	printCh
+	valfromarg
+	value:char:l
+	printCh
+	valfromarg
+	value:char:o
+	printCh
+	valfromarg
+	value:char: 
+	printCh
+	valfromarg
+	value:char:W
+	printCh
+	valfromarg
+	value:char:o
+	printCh
+	valfromarg
+	value:char:r
+	printCh
+	valfromarg
+	value:char:l
+	printCh
+	valfromarg
+	value:char:d
+	printCh
+	valfromarg
+	value:char:!
+	printCh
 end
+set
+get
+variable:hello
+valfromstlink
 call

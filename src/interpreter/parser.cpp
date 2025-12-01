@@ -114,7 +114,6 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 				if(!instrOpt.has_value())
 					throw std::runtime_error("Unexpected end of program while parsing Function Value argument body");
 				body.push_back(instrOpt.value());
-				++(*it);
 			}
 			++(*it);
 			scopes_.pop_back();
