@@ -3,6 +3,13 @@
 #include <ranges>
 #include <algorithm>
 
+std::string baseTrim(std::string_view str)
+{
+	size_t start = std::find_if_not(str.begin(), str.end(), [](unsigned char c){ return std::isspace(c); }) - str.begin();
+	size_t end = std::find_if_not(str.rbegin(), str.rend(), [](unsigned char c){ return std::isspace(c); }).base() - str.begin();
+	return std::string(str.substr(start, end - start));
+}
+
 std::vector<std::string> split(std::string_view str, char delimiter)
 {
     std::vector<std::string> parts;
@@ -35,13 +42,27 @@ std::optional<Variable> Parser::findVariable(const std::string& name) const
 
 TypeVariant Parser::parseType(const std::string& name) const // TODO:
 {
-	size_t end = name.find_first_of("*[&");
+	size_t end = name.find_first_of("*[&(");
 	std::string baseTypeName = name.substr(0, end);
+	if(name[end] == '(')
+	{
+		TypeVariant returnType = parseType(baseTypeName);
+		std::vector<TypeVariant> argTypes;
+		std::vector<std::string> argTypeNames = split(name.substr(end + 1, name.find(')', end) - end - 1), ',');
+		for(const std::string& argTypeName : argTypeNames)
+		{
+			std::optional<TypeVariant> argTypeOpt = parseType(baseTrim(argTypeName));
+			if(!argTypeOpt.has_value())
+				throw std::runtime_error("Unknown argument type in FunctionType: " + argTypeName);
+			argTypes.push_back(argTypeOpt.value());
+		}
+		return FunctionType(std::move(argTypes), std::move(returnType));
+	}
 	std::optional<TypeVariant> typeOpt = processor_->typeByName(baseTypeName);
 	if(!typeOpt.has_value())
 		throw std::runtime_error("Unknown type name: " + baseTypeName);
 	TypeVariant type = typeOpt.value();
-	size_t pos = end;;
+	size_t pos = end;
 	while(pos < name.size())
 	{
 		if(name[pos] == '*')
@@ -173,52 +194,9 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 	}
 	else if(parts[0] == "type")
 	{
-		std::optional<TypeVariant> typeOpt = processor_->typeByName(parts[1]);
-		if(!typeOpt.has_value())
-			throw std::runtime_error("Unknown type in Type argument: " + parts[1]);
-		TypeVariant type = typeOpt.value();
-		for(size_t i = 2; i < parts.size(); ++i)
-		{
-			if(parts[i].empty())
-				throw std::runtime_error("Empty type name in Type argument: " + **it);
-			if(parts[i] == "ptr")
-			{
-				type = PointerType(typeOpt.value());
-				if(!type.isValid())
-					throw std::runtime_error("Invalid PointerType in Type argument: " + **it);
-			}
-			else if(parts[i] == "link")
-			{
-				type = LinkType(typeOpt.value());
-				if(!type.isValid())
-					throw std::runtime_error("Invalid LinkType in Type argument: " + **it);
-			}
-			else if(parts[i].starts_with("array"))
-			{
-				size_t pos = parts[i].find('[');
-				size_t pos2 = parts[i].find(']');
-				if(pos == std::string::npos || pos2 == std::string::npos || pos2 <= pos + 1)
-					throw std::runtime_error("Invalid ArrayType format in Type argument: " + parts[i]);
-				std::string countStr = parts[i].substr(pos + 1, pos2 - pos - 1);
-				size_t count = std::stoull(countStr);
-				type = ArrayType(typeOpt.value(), count);
-				if(!type.isValid())
-					throw std::runtime_error("Invalid ArrayType in Type argument: " + **it);
-			}
-			else if(parts[i] == "func")
-			{
-				type = FunctionType();
-				
-			}
-			else
-			{
-				throw std::runtime_error("Unknown type modifier in Type argument: " + parts[i]);
-			}
-			
-				
-		}
-		
-		arg = typeOpt.value();
+		if(parts.size() != 2)
+			throw std::runtime_error("Invalid TypeVariant argument format: " + **it);
+		TypeVariant arg = parseType(parts[1]);
 		++(*it);
 		return arg;
 	}

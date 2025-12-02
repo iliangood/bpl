@@ -1,5 +1,5 @@
 init:hello
-type:function:void
+type:int64()
 get
 variable:hello
 valfromarg
@@ -40,9 +40,16 @@ value:function:void
 	valfromarg
 	value:char:!
 	printCh
+	valfromarg
+	value:int64:100
+	ret
 end
 set
 get
 variable:hello
 valfromstlink
 call
+valfromarg
+value:char: 
+printCh
+printNum
