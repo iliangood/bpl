@@ -77,6 +77,8 @@ std::optional<OpCode> parseOpcode(const std::string& str)
 		return OpCode::equ_;
 	else if(str == "neq")
 		return OpCode::neq_;
+	else if(str == "inFunc")
+		return OpCode::inFunc_;
 	return std::nullopt;
 }
 
@@ -153,6 +155,17 @@ void Processor::functionExit()
 		throw std::runtime_error("Processor::functionExit() no function to exit from");
 	functionStackStartPositions_.pop_back();
 	stack_.popLevel();
+}
+
+std::optional<int64_t> Processor::inFunc_(Instruction& instruction)
+{
+	if(finished_)
+		return std::nullopt;
+	std::vector<Argument>& args = instruction.arguments();
+	if(args.size() != 0)
+		throw std::runtime_error("std::optional<int64_t> Processor::inFunc_(Instruction&) called with invalid arguments count");
+	functionEntry();
+	return 0;
 }
 
 std::optional<int64_t> Processor::end_(Instruction& instruction) // ! Переделать
@@ -979,6 +992,9 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 	case OpCode::ret_:
 		return ret_(instruction);
 		break;
+	case OpCode::inFunc_:
+		return inFunc_(instruction);
+		break;
 	case OpCode::init_:
 		return init_(instruction);
 		break;
@@ -1071,6 +1087,9 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 		break;
 	case OpCode::equ_:
 		return equ_(instruction);
+		break;
+	case OpCode::neq_:
+		return neq_(instruction);
 		break;
 	default:
 		throw std::runtime_error("std::optional<int64_t> Processor::execute(Instruction&) unknown Opcode");

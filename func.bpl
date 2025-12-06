@@ -1,55 +1,15 @@
 init:hello
-type:int64()
+type:void()
 get
 variable:hello
 valfromarg
-value:function:void
+value:function:void()
 	valfromarg
-	value:char:H
+	value:char:a
 	printCh
-	valfromarg
-	value:char:e
-	printCh
-	valfromarg
-	value:char:l
-	printCh
-	valfromarg
-	value:char:l
-	printCh
-	valfromarg
-	value:char:o
-	printCh
-	valfromarg
-	value:char: 
-	printCh
-	valfromarg
-	value:char:W
-	printCh
-	valfromarg
-	value:char:o
-	printCh
-	valfromarg
-	value:char:r
-	printCh
-	valfromarg
-	value:char:l
-	printCh
-	valfromarg
-	value:char:d
-	printCh
-	valfromarg
-	value:char:!
-	printCh
-	valfromarg
-	value:int64:100
-	ret
 end
 set
 get
 variable:hello
 valfromstlink
 call
-valfromarg
-value:char: 
-printCh
-printNum

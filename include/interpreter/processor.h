@@ -18,6 +18,7 @@ enum class OpCode
 
 	call_,
 	ret_,
+	inFunc_,
 	
 	init_,
 	get_, // get value from StackLink(StackLink from PreStackLink)
@@ -203,6 +204,7 @@ class Processor
 
 	std::optional<int64_t> call_(Instruction& instruction);
 	std::optional<int64_t> ret_(Instruction& instruction);
+	std::optional<int64_t> inFunc_(Instruction& instruction);
 
 	std::optional<int64_t> scopeRet_(Instruction& instruction);
 	std::optional<int64_t> init_(Instruction& instruction);
