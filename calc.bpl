@@ -1,0 +1,61 @@
+init:a
+type:int64
+init:oper
+type:char
+init:b
+type:int64
+init:res
+type:int64
+get
+variable:a
+readNum
+set
+get
+variable:oper
+readCh
+set
+get
+variable:b
+readNum
+set
+
+if
+instructions
+	get
+	variable:oper
+	valfromstlink
+	valfromarg
+	char:+
+	equ
+	endInstructions
+instructions
+	get
+	variable:res
+	get
+	variable:a
+	valfromstlink
+	get
+	variable:b
+	valfromstlink
+	add
+	set
+	endInstructions
+
+get
+variable:a
+valfromstlink
+printNum
+get
+variable:oper
+valfromstlink
+printCh
+get
+variable:b
+valfromstlink
+printNum
+valfromarg
+value:char:=
+get
+variable:res
+valfromstlink
+printNum
