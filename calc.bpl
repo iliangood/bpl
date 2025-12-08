@@ -25,9 +25,9 @@ instructions
 	variable:oper
 	valfromstlink
 	valfromarg
-	char:+
+	value:char:+
 	equ
-	endInstructions
+endInstructions
 instructions
 	get
 	variable:res
@@ -39,7 +39,133 @@ instructions
 	valfromstlink
 	add
 	set
+endInstructions
+instructions
+	if
+	instructions
+		get
+		variable:oper
+		valfromstlink
+		valfromarg
+		value:char:-
+		equ
 	endInstructions
+	instructions
+		get
+		variable:res
+		get
+		variable:a
+		valfromstlink
+		get
+		variable:b
+		valfromstlink
+		sub
+		set
+	endInstructions
+	instructions
+		if
+		instructions
+			get
+			variable:oper
+			valfromstlink
+			valfromarg
+			value:char:*
+			equ
+		endInstructions
+		instructions
+			get
+			variable:res
+			get
+			variable:a
+			valfromstlink
+			get
+			variable:b
+			valfromstlink
+			mul
+			set
+		endInstructions
+		instructions
+			if
+			instructions
+				get
+				variable:oper
+				valfromstlink
+				valfromarg
+				value:char:/
+				equ
+			endInstructions
+			instructions
+				get
+				variable:res
+				get
+				variable:a
+				valfromstlink
+				get
+				variable:b
+				valfromstlink
+				div
+				set
+			endInstructions
+			instructions
+				valfromarg
+				value:char:I
+				printCh
+				valfromarg
+				value:char:n
+				printCh
+				valfromarg
+				value:char:v
+				printCh
+				valfromarg
+				value:char:a
+				printCh
+				valfromarg
+				value:char:l
+				printCh
+				valfromarg
+				value:char:i
+				printCh
+				valfromarg
+				value:char:d
+				printCh
+				valfromarg
+				value:char: 
+				printCh
+				valfromarg
+				value:char:e
+				printCh
+				valfromarg
+				value:char:x
+				printCh
+				valfromarg
+				value:char:p
+				printCh
+				valfromarg
+				value:char:r
+				printCh
+				valfromarg
+				value:char:e
+				printCh
+				valfromarg
+				value:char:s
+				printCh
+				valfromarg
+				value:char:s
+				printCh
+				valfromarg
+				value:char:i
+				printCh
+				valfromarg
+				value:char:o
+				printCh
+				valfromarg
+				value:char:n
+				printCh
+				end
+			endInstructions
+		endInstructions
+	endInstructions
+endInstructions
 
 get
 variable:a
@@ -55,6 +181,7 @@ valfromstlink
 printNum
 valfromarg
 value:char:=
+printCh
 get
 variable:res
 valfromstlink

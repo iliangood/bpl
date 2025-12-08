@@ -223,7 +223,6 @@ std::optional<Argument> Parser::parseArgument(std::vector<std::string>::const_it
 			if(!instrOpt.has_value())
 				throw std::runtime_error("Unexpected end of program while parsing Instructions argument");
 			instructions.push_back(instrOpt.value());
-			++(*it);
 		}
 		if(*it == end)
 			throw std::runtime_error("Unexpected end of program while parsing Instructions argument");
