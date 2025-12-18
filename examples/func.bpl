@@ -3,12 +3,12 @@ type:void()
 get
 variable:hello
 valfromarg
-value:function:void()
-	valfromarg
-	value:char:a
+value:function:void(char)
 	printCh
 end
 set
+valfromarg
+value:char:b
 get
 variable:hello
 valfromstlink

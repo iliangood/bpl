@@ -77,8 +77,6 @@ std::optional<OpCode> parseOpcode(const std::string& str)
 		return OpCode::equ_;
 	else if(str == "neq")
 		return OpCode::neq_;
-	else if(str == "inFunc")
-		return OpCode::inFunc_;
 	return std::nullopt;
 }
 
@@ -143,9 +141,9 @@ stack_(this, stackSize), FunctionReturnValues_(this, 1024), finished_(false), re
 
 
 
-void Processor::functionEntry() 
+void Processor::functionEntry(size_t argumentsElementCount) 
 {
-	functionStackStartPositions_.push_back(stack_.elementCount());
+	functionStackStartPositions_.push_back(stack_.elementCount() - argumentsElementCount);
 	stack_.newLevel();
 }
 
@@ -155,17 +153,6 @@ void Processor::functionExit()
 		throw std::runtime_error("Processor::functionExit() no function to exit from");
 	functionStackStartPositions_.pop_back();
 	stack_.popLevel();
-}
-
-std::optional<int64_t> Processor::inFunc_(Instruction& instruction)
-{
-	if(finished_)
-		return std::nullopt;
-	std::vector<Argument>& args = instruction.arguments();
-	if(args.size() != 0)
-		throw std::runtime_error("std::optional<int64_t> Processor::inFunc_(Instruction&) called with invalid arguments count");
-	functionEntry();
-	return 0;
 }
 
 std::optional<int64_t> Processor::end_(Instruction& instruction) // ! Переделать
@@ -206,6 +193,12 @@ std::optional<int64_t> Processor::call_(Instruction&)
 			}
 		}
 	}
+	size_t argumentsElementCount = 0;
+	for(const TypeVariant& argType : args)
+	{
+		argumentsElementCount += argType.elementCount();
+	}
+	functionEntry(argumentsElementCount);
 	uint8_t* elemPtr = stack_.at(lastElem);
 	std::vector<Instruction>& body = **reinterpret_cast<std::vector<Instruction>**>(elemPtr);
 	for(Instruction& inst : body)
@@ -991,9 +984,6 @@ std::optional<int64_t> Processor::execute(Instruction& instruction)
 		break;
 	case OpCode::ret_:
 		return ret_(instruction);
-		break;
-	case OpCode::inFunc_:
-		return inFunc_(instruction);
 		break;
 	case OpCode::init_:
 		return init_(instruction);
