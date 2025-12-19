@@ -72,7 +72,7 @@ make
 
 
 ### Ввод/вывод и работа с консолью:
-- setNoBlockingInput
+- setNoBlockingInput - установить режим (не) блокируемого ввода
 - checkBuf
 - printCh
 - printNum
