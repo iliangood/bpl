@@ -74,7 +74,7 @@ make
 ### Ввод/вывод и работа с консолью:
 - setNoBlockingInput - установить режим (не) блокируемого ввода
 - checkBuf - проверить наличие данных в буфере
-- printCh
+- printCh - вывод 1 символа из стека
 - printNum
 - readCh
 - readNum
