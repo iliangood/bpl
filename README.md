@@ -75,7 +75,7 @@ make
 - setNoBlockingInput - установить режим (не) блокируемого ввода
 - checkBuf - проверить наличие данных в буфере
 - printCh - вывод 1 символа из стека
-- printNum
+- printNum - вывод 1 числа из стека
 - readCh
 - readNum
 - peekCh
