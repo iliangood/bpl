@@ -76,7 +76,7 @@ make
 - checkBuf - проверить наличие данных в буфере
 - printCh - вывод 1 символа из стека
 - printNum - вывод 1 числа из стека
-- readCh
+- readCh - чтение 1 символа из stdin в стек
 - readNum
 - peekCh
 
