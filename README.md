@@ -77,7 +77,7 @@ make
 - printCh - вывод 1 символа из стека
 - printNum - вывод 1 числа из стека
 - readCh - чтение 1 символа из stdin в стек
-- readNum
+- readNum - чтение 1 числа из stdin в стек
 - peekCh
 
 
